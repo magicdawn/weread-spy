@@ -1,0 +1,365 @@
+:root {
+	--main-font: Palatino, 'Palatino Linotype', 'Times New Roman', 'Droid Serif',
+		Times, 'Source Serif Pro', serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol';
+	--alt-font: 'helvetica neue', ubuntu, roboto, noto, 'segoe ui', arial,
+		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+	--code-font: Menlo, Consolas, monospace;
+	--accent-color: black;
+}
+
+@page {
+	size: A5 portrait;
+	margin: 1cm 1cm 2cm;
+}
+
+html {
+	font-size: 12pt;
+	line-height: 1.3;
+	font-family: var(--main-font);
+	-webkit-print-color-adjust: exact;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin-bottom: 0.5em;
+	font-family: var(--alt-font);
+	font-weight: bold;
+	page-break-after: avoid;
+}
+
+a {
+	color: inherit;
+	text-decoration: underline;
+}
+
+/*
+	Going on a limb here,
+	but a.anchor in heading elements
+	is most likely a '#' or '§' anchor
+	we don't want to display in the PDF.
+ */
+h1 a.anchor,
+h2 a.anchor,
+h3 a.anchor,
+h4 a.anchor,
+h5 a.anchor,
+h6 a.anchor {
+	visibility: hidden;
+	position: absolute;
+}
+
+th {
+	font-family: var(--alt-font);
+}
+
+code,
+pre {
+	font-size: 0.85em;
+}
+
+pre code {
+	font-size: 1em;
+}
+
+/*
+	Don't display hidden elements
+ */
+[hidden],
+[aria-hidden] {
+	display: none;
+}
+
+/*
+	Table of Contents page
+	----------------------------------------------------
+ */
+
+.toc {
+	page-break-before: always;
+	page-break-after: always;
+}
+
+/*
+	Article formatting
+	----------------------------------------------------
+ */
+
+article {
+	font-size: 1em;
+}
+
+article:not(:last-of-type) {
+	page-break-after: always;
+}
+
+/*
+	Article Header
+	--------------
+ */
+
+.article__header {
+	margin: 0 0 1.3em;
+}
+
+.article__title {
+	font-size: 2.4em;
+	margin: 0 0 0.25em;
+	letter-spacing: -0.03em;
+	line-height: 1.1;
+}
+
+.article__url {
+	font-style: italic;
+	font-size: 0.9em;
+}
+
+/*
+	Article Content
+	---------------
+ */
+
+.article__content img {
+	max-width: 100%;
+	display: block;
+	margin: 0 auto;
+}
+
+.article__content figure {
+	display: block;
+	margin: 1.5em 0;
+	padding: 0;
+	text-align: center;
+}
+
+.article__content figcaption {
+	font-size: 0.8em;
+	font-family: var(--alt-font);
+	margin: 0.81em 0;
+	line-height: 1.625;
+}
+
+.article__content figure blockquote,
+.article__content figure pre {
+	text-align: left;
+}
+
+.article__content table,
+.article__content figure {
+	page-break-inside: avoid;
+}
+
+.article__content pre,
+.article__content code {
+	font-family: var(--code-font);
+}
+
+.article__content pre {
+	border: 0.25pt solid #000;
+	padding: 0.75em;
+	font-size: 0.9em;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+
+.article__content kbd,
+.article__content var,
+.article__content samp {
+	padding: 0 0.5em;
+	box-shadow: 2pt 2pt 0 #ccc;
+	border: 0.5pt solid #000;
+	border-radius: 0.25em;
+	font-size: 0.9em;
+}
+
+.article__content p {
+	margin: 0;
+	orphans: 3;
+	widows: 3;
+}
+
+/*
+	Indent all subsequent paragraphs.
+ */
+.article__content p + p {
+	text-indent: 2em;
+}
+
+/*
+	Fixes the text indent for images
+	that get wrapped in a <p> tag
+	by Readability.
+
+	Reference:
+	https://github.com/danburzo/percollate/issues/48
+ */
+.article__content p + p > img:only-child {
+	margin-left: -2em;
+}
+
+.article__content hr {
+	border: none;
+	height: 0.5pt;
+	margin: 1.3em 0;
+	background: #000;
+}
+
+.article__content blockquote {
+	font-size: 0.9em;
+	line-height: 1.44;
+	padding-left: 2em;
+	border-left: 3pt solid #000;
+	margin-left: 0;
+}
+
+.article__content table {
+	width: 100%;
+	border-collapse: collapse;
+	page-break-inside: auto;
+	font-size: 0.9em;
+	line-height: 1.44;
+	margin: 1.44em 0;
+}
+
+.article__content th {
+}
+
+.article__content th,
+.article__content td {
+	text-align: left;
+	vertical-align: top;
+	padding: 0.36em 1em 0.36em 0;
+}
+
+.article__content tr {
+	border-bottom: 0.25pt solid #000;
+	page-break-inside: avoid;
+	page-break-after: auto;
+}
+
+.article__content dt {
+	font-weight: bold;
+}
+
+.article__content ol,
+.article__content ul {
+	padding-left: 2em;
+	list-style-position: outside;
+	margin: 0.65em 0;
+}
+
+.article__content aside {
+	font-family: var(--alt-font);
+	font-size: 0.9em;
+	line-height: 1.44;
+	padding-left: 2em;
+}
+
+.article__content details {
+	margin: 0.65em 0;
+}
+
+.article__content details > summary {
+	font-weight: bold;
+	font-size: 0.9em;
+	font-family: var(--alt-font);
+}
+
+/*
+	Page header / footer
+	--------------------
+
+	These are extracted when generating the PDF
+	and are not subject to the page's CSS cascade.
+
+	They're just placed here for easier style coordination
+ */
+
+.header-template {
+}
+
+.footer-template {
+	font-size: 10pt;
+	font-weight: bold;
+}
+
+/*
+	Cover page
+	----------
+ */
+
+.cover {
+	color: var(--accent-color);
+	border: 0.5em solid;
+	font-family: var(--cover-font, var(--alt-font));
+	padding: 2em;
+}
+
+.cover__title {
+	font-size: 2.4em;
+	margin: 0;
+	line-height: 1.1;
+}
+
+.cover__subtitle {
+	margin: 1em 0;
+}
+
+.cover__date {
+	font-weight: bold;
+}
+
+/*
+	Filetype specific
+	-----------------
+ */
+
+.type--pdf body {
+	margin: 0;
+	padding: 0;
+}
+
+.type--pdf a:not(.no-href):after {
+	content: ' → ' attr(href) '';
+	font-size: 0.8em;
+	word-break: break-all;
+	word-wrap: break-word;
+	font-family: var(--alt-font);
+}
+
+.type--pdf .cover,
+.type--epub .cover {
+	position: absolute;
+	overflow: hidden;
+}
+
+.type--pdf .cover {
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.type--epub .cover {
+	top: 2em;
+	left: 2em;
+	right: 2em;
+	bottom: 2em;
+}
+
+.type--pdf .cover__content,
+.type--epub .cover__content {
+	position: absolute;
+	top: 30%;
+	left: 2em;
+	right: 2em;
+	transform: translate(0, -50%);
+}
+
+.type--pdf .cover__sentinel {
+	page-break-after: always;
+}

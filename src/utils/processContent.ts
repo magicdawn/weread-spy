@@ -43,7 +43,8 @@ export default function processContent(info: any) {
 
 function applyTemplate({style, content}: {style: string; content: string}) {
   const tpl = `
-		<html lang="en">
+    <?xml version="1.0" encoding="UTF-8"?>
+    <html xmlns="http://www.w3.org/1999/xhtml">
 		  <head>
 		    <meta charset="UTF-8" />
 		    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -72,7 +73,7 @@ function removeDataAttr(el: CheerioElement, $: CheerioStatic) {
   const $el = $(el)
 
   // self
-  Object.keys(el.attribs)
+  Object.keys(el.attribs || {})
     .filter((k) => {
       return k.startsWith('data-') && !['data-src'].includes(k)
     })
@@ -81,7 +82,7 @@ function removeDataAttr(el: CheerioElement, $: CheerioStatic) {
     })
 
   // children
-  el.childNodes.forEach((c) => {
+  el.childNodes?.forEach((c) => {
     if (c.type === 'text') return
     removeDataAttr(c, $)
   })
@@ -116,10 +117,10 @@ function fixImgSrc(el: CheerioElement, $: CheerioStatic) {
   const handleHere = el.tagName?.toLowerCase() === 'img'
   if (handleHere) {
     const src = $el.data('src')
-    $el.removeAttr('data-src').attr('src', src)
+    $el.removeAttr('data-src').attr('src', src).attr('alt', src)
   } else {
     // children
-    el.childNodes.forEach((c) => {
+    el.childNodes?.forEach((c) => {
       if (c.type === 'text') return
       fixImgSrc(c, $)
     })
