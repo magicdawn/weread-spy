@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "weread-spy-cli",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/bin.ts"],
+      "autoAttachChildProcesses": false
+    }
+  ]
+}

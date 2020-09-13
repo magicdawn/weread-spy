@@ -3,7 +3,7 @@
 import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
-import {stat} from 'fs/promises'
+import processContent from './utils/processContent'
 
 const userDataDir = path.join(__dirname, '../data/pptr')
 
@@ -59,9 +59,6 @@ async function main() {
     return state
   })
 
-  // raw
-  // await fse.outputJSON(__dirname + '/../data/state.json', state, {spaces: 2})
-
   // want
   const info = {
     bookId: state.reader.bookId,
@@ -71,6 +68,13 @@ async function main() {
     chapterContentStyles: state.reader.chapterContentStyles,
     currentChapterId: state.reader.currentChapter.chapterUid,
   }
+
+  // raw
+  await fse.outputJSON(
+    path.join(__dirname, `../data/book/${info.bookId}/00-start-info.json`),
+    info,
+    {spaces: 2}
+  )
 
   const changeChapter = async (uid) => {
     await page.$eval(
@@ -91,6 +95,7 @@ async function main() {
       const state = (el as any).__vue__.$store.state
       const currentChapterId = state.reader.currentChapter.chapterUid
       const currentState = state?.reader?.chapterContentState
+      console.log({currentChapterId, currentState, id})
       return currentChapterId === id && currentState === 'DONE'
     }, chapterUid)
     console.log('after-changeChapter %s', chapterUid)
@@ -109,17 +114,20 @@ async function main() {
       currentChapterId: state.reader.currentChapter.chapterUid,
     }
 
-    const chapterFile = path.join(
+    const html = await processContent(info)
+    const chapterHtmlFile = path.join(
       __dirname,
-      '../data/',
-      'book',
-      info.bookId,
-      `${info.currentChapterId}.html`
+      `../data/book/${info.bookId}/${info.currentChapterId}.html`
     )
-    await fse.outputFile(chapterFile, info.chapterContentHtml)
+    await fse.outputFile(chapterHtmlFile, html)
   }
 
   await browser.close()
 }
-
 main()
+
+// import startInfo from '../data/book/25462428/00-start-info.json'
+// async function test() {
+//   console.log(processContent(startInfo))
+// }
+// test()

@@ -2,9 +2,12 @@
   "compilerOptions": {
     "outDir": "./lib",
     "allowJs": true,
-    "target": "ES2019",
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "es2019",
+    "strict": false
   },
   "include": ["./src/**/*"]
 }
