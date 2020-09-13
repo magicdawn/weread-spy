@@ -4,17 +4,10 @@ import prettier from 'prettier'
 import prettierConfig from '../../prettier.config'
 
 export default function processContent(info: any) {
-  const {
-    bookId,
-    bookInfo,
-    chapterInfos,
-    chapterContentHtml,
-    chapterContentStyles,
-    currentChapterId,
-  } = info
+  const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
 
-  let html = applyTemplate({style: chapterContentStyles, content: chapterContentHtml})
-  const $ = cheerio.load(html, {decodeEntities: false})
+  let html = chapterContentHtml
+  const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true})
 
   const checkArgs: () => [CheerioElement, CheerioStatic] = () => [$.root()[0], $]
 
@@ -28,11 +21,19 @@ export default function processContent(info: any) {
   fixImgSrc(...checkArgs())
 
   // get html
-  html = $.html()
+  html = $.html().trim()
+
+  // remove wrapper
+  // <html><head></head><body>
+  html = html.replace('<html><head></head><body>', '')
+  html = html.replace('</body></html>', '')
+
+  // apply templates
+  html = applyTemplate({style: chapterContentStyles, content: html})
 
   // format
   try {
-    html = prettier.format(html, {...prettierConfig, parser: 'html'})
+    // html = prettier.format(html, {...prettierConfig, parser: 'html'})
   } catch (e) {
     console.warn('[prettier] format met error: currentChapterId = %s', currentChapterId)
     console.error(e.stack || e)
@@ -41,18 +42,18 @@ export default function processContent(info: any) {
   return html
 }
 
+// <style>
+//   {{ style | safe }}
+// </style>
 function applyTemplate({style, content}: {style: string; content: string}) {
   const tpl = `
     <?xml version="1.0" encoding="UTF-8"?>
     <html xmlns="http://www.w3.org/1999/xhtml">
 		  <head>
-		    <meta charset="UTF-8" />
-		    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		    <meta charset="UTF-8"></meta>
+		    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
 		    <title>Document</title>
 		  </head>
-		  <style>
-		    {{ style | safe }}
-		  </style>
 		  <body>
 		    <div class="readerChapterContent">
 		      {{ content | safe }}
@@ -61,10 +62,12 @@ function applyTemplate({style, content}: {style: string; content: string}) {
 		</html>
 	`
 
-  const str = njk.renderString(tpl, {
-    style,
-    content,
-  })
+  const str = njk
+    .renderString(tpl, {
+      style,
+      content,
+    })
+    .trim()
 
   return str
 }
@@ -116,8 +119,9 @@ function fixImgSrc(el: CheerioElement, $: CheerioStatic) {
   // self
   const handleHere = el.tagName?.toLowerCase() === 'img'
   if (handleHere) {
-    const src = $el.data('src')
-    $el.removeAttr('data-src').attr('src', src).attr('alt', src)
+    // const src = $el.data('src')
+    // $el.removeAttr('data-src').attr('src', src).attr('alt', src)
+    $el.removeAttr('alt')
   } else {
     // children
     el.childNodes?.forEach((c) => {

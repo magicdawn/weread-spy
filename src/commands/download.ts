@@ -76,7 +76,7 @@ async function main(bookReadUrl: string) {
   })
 
   // want
-  const info = {
+  const startInfo = {
     bookId: state.reader.bookId,
     bookInfo: state.reader.bookInfo,
     chapterInfos: state.reader.chapterInfos,
@@ -84,11 +84,6 @@ async function main(bookReadUrl: string) {
     chapterContentStyles: state.reader.chapterContentStyles,
     currentChapterId: state.reader.currentChapter.chapterUid,
   }
-
-  // raw
-  await fse.outputJSON(path.join(APP_ROOT, `data/book/${info.bookId}/00-start-info.json`), info, {
-    spaces: 2,
-  })
 
   const changeChapter = async (uid: number) => {
     await page.$eval(
@@ -100,7 +95,8 @@ async function main(bookReadUrl: string) {
     )
   }
 
-  for (let c of info.chapterInfos) {
+  const chapterInfos = []
+  for (let c of startInfo.chapterInfos) {
     const {chapterUid} = c
 
     console.log('before-changeChapter %s', chapterUid)
@@ -128,13 +124,15 @@ async function main(bookReadUrl: string) {
       currentChapterId: state.reader.currentChapter.chapterUid,
     }
 
-    const html = processContent(info)
-    const chapterHtmlFile = path.join(
-      APP_ROOT,
-      `data/book/${info.bookId}/${info.currentChapterId}.html`
-    )
-    await fse.outputFile(chapterHtmlFile, html)
+    chapterInfos.push(info)
   }
+
+  // 书籍信息
+  const json = {
+    startInfo,
+    chapterInfos,
+  }
+  await fse.outputJson(path.join(APP_ROOT, `data/book/${startInfo.bookId}.json`), json, {spaces: 2})
 
   await browser.close()
 }

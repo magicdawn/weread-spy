@@ -20,7 +20,7 @@ import moment from 'moment'
 const UA = `percollate/v1.0.0`
 const APP_ROOT = path.join(__dirname, '../../')
 
-async function epubgen({epubFile, info}) {
+export async function gen({epubFile, data}) {
   const template_base = path.join(__dirname, 'templates/epub/')
 
   const output = fs.createWriteStream(epubFile)
@@ -58,11 +58,12 @@ async function epubgen({epubFile, info}) {
   const opfTemplate = await fs.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8')
 
   // 章节 html
-  const {chapterInfos, bookInfo, bookId} = info
-  for (let c of chapterInfos) {
+  const {chapterInfos, bookInfo, bookId} = data.startInfo
+
+  for (let i = 0; i < chapterInfos.length; i++) {
+    const c = chapterInfos[i]
     const {chapterUid} = c
-    const htmlFile = path.join(APP_ROOT, `data/book/25462428/${chapterUid}.html`)
-    const content = fs.readFileSync(htmlFile, 'utf8')
+    const content = processContent(data.chapterInfos[i])
     archive.append(content, {name: `OEBPS/chapter-${chapterUid}.xhtml`})
   }
 
@@ -74,7 +75,7 @@ async function epubgen({epubFile, info}) {
     },
   ]
 
-  const data = {
+  const renderData = {
     e: '',
     title: bookInfo.title,
     uuid: uuidv4(),
@@ -91,23 +92,26 @@ async function epubgen({epubFile, info}) {
   }
 
   // nav.xhtml
-  const nav = nunjucks.renderString(navTemplate, data)
+  const nav = nunjucks.renderString(navTemplate, renderData)
   archive.append(nav, {name: 'OEBPS/nav.xhtml'})
 
   // content.opf
-  const opf = nunjucks.renderString(opfTemplate, {...data})
+  const opf = nunjucks.renderString(opfTemplate, {...renderData})
   archive.append(opf, {name: 'OEBPS/content.opf'})
 
-  const toc = nunjucks.renderString(tocTemplate, data)
+  const toc = nunjucks.renderString(tocTemplate, renderData)
   archive.append(toc, {name: 'OEBPS/toc.ncx'})
 
   archive.finalize()
 }
 
-import info from '../../data/book/25462428/00-start-info.json'
-
+import data from '../../data/book/25462428.json'
+import processContent from './processContent'
 async function main() {
-  await epubgen({epubFile: path.join(APP_ROOT, `data/book/${info.bookId}.epub`), info})
+  await gen({
+    epubFile: path.join(APP_ROOT, `data/book/${(data as any).startInfo.bookId}.epub`),
+    data,
+  })
 }
 
 main()
@@ -118,4 +122,11 @@ main()
 // check
 // java -jar ~/Downloads/dev_soft/epubcheck-4.2.4/epubcheck.jar ./data/book/25462428.epub
 
-// TODO: split weread infos
+// 可以生成了
+// TODO
+//
+// 1.图片 Remote resource reference not allowed; resource must be placed in the OCF.
+// 远程图片必须列在 content.opf 中
+//
+// 2. style
+// style 不能内联
