@@ -3,9 +3,17 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "weread-spy-cli",
+      "name": "bin.ts",
       "runtimeArgs": ["-r", "ts-node/register"],
       "args": ["${workspaceFolder}/src/bin.ts"],
+      "autoAttachChildProcesses": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "epub.ts",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/src/utils/epub.ts"],
       "autoAttachChildProcesses": false
     }
   ]

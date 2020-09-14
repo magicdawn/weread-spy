@@ -7,29 +7,25 @@ export default function processContent(info: any) {
   const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
 
   let html = chapterContentHtml
-  const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true})
-
-  const checkArgs: () => [CheerioElement, CheerioStatic] = () => [$.root()[0], $]
-
-  // remove all data-xxx
-  removeDataAttr(...checkArgs())
-
-  // combine span
-  removeUnusedSpan(...checkArgs())
-
-  // img
-  fixImgSrc(...checkArgs())
-
-  // get html
-  html = $.html().trim()
-
-  // remove wrapper
-  // <html><head></head><body>
-  html = html.replace('<html><head></head><body>', '')
-  html = html.replace('</body></html>', '')
 
   // apply templates
   html = applyTemplate({style: chapterContentStyles, content: html})
+
+  // new $
+  const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
+  const checkArgs: () => [CheerioElement, CheerioStatic] = () => [$.root()[0], $]
+
+  // remove all data-xxx
+  traverse($.root()[0], $, removeDataAttr)
+
+  // combine span
+  traverse($.root()[0], $, removeUnusedSpan)
+
+  // img
+  traverse($.root()[0], $, fixImgSrc)
+
+  // get xhtml
+  html = $.xml().trim()
 
   // format
   try {
@@ -50,8 +46,8 @@ function applyTemplate({style, content}: {style: string; content: string}) {
     <?xml version="1.0" encoding="UTF-8"?>
     <html xmlns="http://www.w3.org/1999/xhtml">
 		  <head>
-		    <meta charset="UTF-8"></meta>
-		    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+		    <meta charset="UTF-8" />
+		    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		    <title>Document</title>
 		  </head>
 		  <body>
@@ -72,10 +68,26 @@ function applyTemplate({style, content}: {style: string; content: string}) {
   return str
 }
 
-function removeDataAttr(el: CheerioElement, $: CheerioStatic) {
+type OnNodeResult = {traverseChildren?: boolean} | undefined | void
+type OnNode = (el: CheerioElement, $: CheerioStatic) => OnNodeResult
+
+function traverse(el: CheerioElement, $: CheerioStatic, onNode: OnNode) {
   const $el = $(el)
 
   // self
+  const {traverseChildren = true} = onNode(el, $) || {}
+
+  // children
+  if (traverseChildren) {
+    el.childNodes?.forEach((c) => {
+      if (c.type === 'text') return
+      traverse(c, $, onNode)
+    })
+  }
+}
+
+function removeDataAttr(el: CheerioElement, $: CheerioStatic): OnNodeResult {
+  const $el = $(el)
   Object.keys(el.attribs || {})
     .filter((k) => {
       return k.startsWith('data-') && !['data-src'].includes(k)
@@ -83,50 +95,31 @@ function removeDataAttr(el: CheerioElement, $: CheerioStatic) {
     .forEach((attr) => {
       $el.removeAttr(attr)
     })
-
-  // children
-  el.childNodes?.forEach((c) => {
-    if (c.type === 'text') return
-    removeDataAttr(c, $)
-  })
 }
 
-function removeUnusedSpan(el: CheerioElement, $: CheerioStatic) {
-  const $el = $(el)
-
-  // self
+function removeUnusedSpan(el: CheerioElement, $: CheerioStatic): OnNodeResult {
   const shouldCombine =
     el.childNodes?.length &&
     el.childNodes?.every(
-      (el) => el.tagName?.toLowerCase() === 'span' && Object.keys(el.attribs || {}).length === 0
+      (c) => c.tagName?.toLowerCase() === 'span' && Object.keys(c.attribs || {}).length === 0
     )
+
+  // self
   if (shouldCombine) {
+    const $el = $(el)
     const text = $el.text()
     $el.empty()
     $el.append(`<span>${text}</span>`)
-  } else {
-    // children
-    ;(el.childNodes || []).forEach((c) => {
-      if (c.type === 'text') return
-      removeUnusedSpan(c, $)
-    })
   }
+
+  return {traverseChildren: !shouldCombine}
 }
 
-function fixImgSrc(el: CheerioElement, $: CheerioStatic) {
-  const $el = $(el)
-
-  // self
-  const handleHere = el.tagName?.toLowerCase() === 'img'
-  if (handleHere) {
+function fixImgSrc(el: CheerioElement, $: CheerioStatic): OnNodeResult {
+  if (el.tagName?.toLowerCase?.() === 'img') {
+    const $el = $(el)
     // const src = $el.data('src')
     // $el.removeAttr('data-src').attr('src', src).attr('alt', src)
     $el.removeAttr('alt')
-  } else {
-    // children
-    el.childNodes?.forEach((c) => {
-      if (c.type === 'text') return
-      fixImgSrc(c, $)
-    })
   }
 }
