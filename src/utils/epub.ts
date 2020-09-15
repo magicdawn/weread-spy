@@ -16,6 +16,11 @@ import fetch from 'node-fetch'
 import {launch} from 'puppeteer'
 import {v4 as uuidv4} from 'uuid'
 import moment from 'moment'
+import {createHash} from 'crypto'
+import pmap from 'promise.map'
+import dl from 'dl-vampire'
+
+const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
 const UA = `percollate/v1.0.0`
 const APP_ROOT = path.join(__dirname, '../../')
@@ -73,14 +78,24 @@ export async function gen({epubFile, data}) {
   //   }
   const items: Array<{id: string; title: string; filename: string}> = []
 
+  //
+  let extractImgs = []
+
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
     const {chapterUid} = c
 
     const cssFilename = `css/chapter-${chapterUid}.css`
+    const transformImgSrc = (src: string) => {
+      // no transform
+      const hash = md5(src)
+      const ext = 'jpg' // fixme
+      return `imgs/chapter-${chapterUid}/${hash}${ext ? '.' + ext : ''}`
+    }
 
     const {xhtml, style, imgs} = processContent(data.chapterInfos[i], {
       cssFilename,
+      transformImgSrc,
     })
 
     // xhtml
@@ -103,6 +118,14 @@ export async function gen({epubFile, data}) {
     })
 
     // imgs
+    extractImgs = extractImgs.concat(imgs)
+    for (let {src, newSrc} of imgs) {
+      assets.push({
+        id: newSrc.replace(/[\/\.]/g, '-'),
+        href: newSrc,
+        mimetype: 'image/jpeg',
+      })
+    }
   }
 
   const renderData = {
@@ -125,6 +148,19 @@ export async function gen({epubFile, data}) {
 
   const toc = nunjucks.renderString(tocTemplate, renderData)
   archive.append(toc, {name: 'OEBPS/toc.ncx'})
+
+  // 下载图片
+  const localDir = path.join(APP_ROOT, `data/book/${bookId}/`)
+  await pmap(
+    extractImgs,
+    (item, index, arr) => {
+      const {src, newSrc} = item
+      console.log('handle img %s -> %s', src, newSrc)
+      return dl({url: src, file: path.join(localDir, newSrc)})
+    },
+    10
+  )
+  archive.directory(path.join(localDir, 'imgs'), 'OEBPS/imgs')
 
   archive.finalize()
 }

@@ -12,11 +12,13 @@
   "dependencies": {
     "archiver": "^5.0.2",
     "cheerio": "^1.0.0-rc.3",
+    "dl-vampire": "^0.5.0",
     "fs-extra": "^9.0.1",
     "mimetype": "^0.0.8",
     "moment": "^2.28.0",
     "node-fetch": "^2.6.1",
     "nunjucks": "^3.2.2",
+    "promise.map": "^0.1.0",
     "puppeteer": "^5.3.0",
     "swig-templates": "^2.0.3",
     "tslib": "^1",

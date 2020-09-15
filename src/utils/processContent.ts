@@ -3,13 +3,16 @@ import njk from 'nunjucks'
 import prettier from 'prettier'
 import prettierConfig from '../../prettier.config'
 
+type TransformImgSrc = (src: string) => string
+
 interface ProcessContentOptions {
   cssFilename: string
+  transformImgSrc: TransformImgSrc
 }
 
 export default function processContent(info: any, options: ProcessContentOptions) {
   const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
-  const {cssFilename} = options
+  const {cssFilename, transformImgSrc} = options
 
   let html = chapterContentHtml
 
@@ -27,8 +30,11 @@ export default function processContent(info: any, options: ProcessContentOptions
   traverse($.root()[0], $, removeUnusedSpan)
 
   // 图片
-  const imgs = []
-  traverse($.root()[0], $, fixImgSrc)
+  const ctx: {transformImgSrc: TransformImgSrc; imgs: Array<{src: string; newSrc: string}>} = {
+    transformImgSrc,
+    imgs: [],
+  }
+  traverse($.root()[0], $, fixImgSrc, ctx)
 
   // get xhtml
   html = $.xml().trim()
@@ -52,7 +58,7 @@ export default function processContent(info: any, options: ProcessContentOptions
   return {
     xhtml: html,
     style,
-    imgs,
+    imgs: ctx.imgs,
   }
 }
 
@@ -97,19 +103,19 @@ function applyTemplate({
 }
 
 type OnNodeResult = {traverseChildren?: boolean} | undefined | void
-type OnNode = (el: CheerioElement, $: CheerioStatic) => OnNodeResult
+type OnNode = (el: CheerioElement, $: CheerioStatic, extraData?: any) => OnNodeResult
 
-function traverse(el: CheerioElement, $: CheerioStatic, onNode: OnNode) {
+function traverse(el: CheerioElement, $: CheerioStatic, onNode: OnNode, extraData?: any) {
   const $el = $(el)
 
   // self
-  const {traverseChildren = true} = onNode(el, $) || {}
+  const {traverseChildren = true} = onNode(el, $, extraData) || {}
 
   // children
   if (traverseChildren) {
     el.childNodes?.forEach((c) => {
       if (c.type === 'text') return
-      traverse(c, $, onNode)
+      traverse(c, $, onNode, extraData)
     })
   }
 }
@@ -143,11 +149,22 @@ function removeUnusedSpan(el: CheerioElement, $: CheerioStatic): OnNodeResult {
   return {traverseChildren: !shouldCombine}
 }
 
-function fixImgSrc(el: CheerioElement, $: CheerioStatic): OnNodeResult {
+function fixImgSrc(el: CheerioElement, $: CheerioStatic, ctx: any): OnNodeResult {
   if (el.tagName?.toLowerCase?.() === 'img') {
     const $el = $(el)
-    // const src = $el.data('src')
-    // $el.removeAttr('data-src').attr('src', src).attr('alt', src)
+    const src = $el.data('src')
+
+    // remove alt
     $el.removeAttr('alt')
+
+    // transform
+    const newSrc = ctx.transformImgSrc(src)
+    ctx.imgs.push({
+      src,
+      newSrc,
+    })
+
+    // change src
+    $el.attr('src', newSrc)
   }
 }
