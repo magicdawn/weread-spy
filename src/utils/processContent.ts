@@ -3,13 +3,18 @@ import njk from 'nunjucks'
 import prettier from 'prettier'
 import prettierConfig from '../../prettier.config'
 
-export default function processContent(info: any) {
+interface ProcessContentOptions {
+  cssFilename: string
+}
+
+export default function processContent(info: any, options: ProcessContentOptions) {
   const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
+  const {cssFilename} = options
 
   let html = chapterContentHtml
 
   // apply templates
-  html = applyTemplate({style: chapterContentStyles, content: html})
+  html = applyTemplate({style: chapterContentStyles, content: html, cssFilename})
 
   // new $
   const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
@@ -21,7 +26,8 @@ export default function processContent(info: any) {
   // combine span
   traverse($.root()[0], $, removeUnusedSpan)
 
-  // img
+  // 图片
+  const imgs = []
   traverse($.root()[0], $, fixImgSrc)
 
   // get xhtml
@@ -35,13 +41,33 @@ export default function processContent(info: any) {
     console.error(e.stack || e)
   }
 
-  return html
+  let style = chapterContentStyles
+  try {
+    style = prettier.format(style, {...prettierConfig, parser: 'css'})
+  } catch (e) {
+    console.warn('[prettier] format met error: currentChapterId = %s', currentChapterId)
+    console.error(e.stack || e)
+  }
+
+  return {
+    xhtml: html,
+    style,
+    imgs,
+  }
 }
 
 // <style>
 //   {{ style | safe }}
 // </style>
-function applyTemplate({style, content}: {style: string; content: string}) {
+function applyTemplate({
+  style,
+  content,
+  cssFilename,
+}: {
+  style: string
+  content: string
+  cssFilename: string
+}) {
   const tpl = `
     <?xml version="1.0" encoding="UTF-8"?>
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -49,6 +75,7 @@ function applyTemplate({style, content}: {style: string; content: string}) {
 		    <meta charset="UTF-8" />
 		    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		    <title>Document</title>
+        <link rel="stylesheet" href="{{cssFilename}}" />
 		  </head>
 		  <body>
 		    <div class="readerChapterContent">
@@ -62,6 +89,7 @@ function applyTemplate({style, content}: {style: string; content: string}) {
     .renderString(tpl, {
       style,
       content,
+      cssFilename,
     })
     .trim()
 

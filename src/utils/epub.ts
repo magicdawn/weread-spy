@@ -60,20 +60,50 @@ export async function gen({epubFile, data}) {
   // 章节 html
   const {chapterInfos, bookInfo, bookId} = data.startInfo
 
+  // {
+  //   id: 'style',
+  //   href: 'style.css',
+  //   mimetype: 'text/css',
+  // },
+  const assets: Array<{id: string; href: string; mimetype: string}> = []
+
+  //     id: `chapter-${chapterUid}-xhtml`,
+  //     title,
+  //     raw: c,
+  //   }
+  const items: Array<{id: string; title: string; filename: string}> = []
+
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
     const {chapterUid} = c
-    const content = processContent(data.chapterInfos[i])
-    archive.append(content, {name: `OEBPS/chapter-${chapterUid}.xhtml`})
-  }
 
-  const assets = [
+    const cssFilename = `css/chapter-${chapterUid}.css`
+
+    const {xhtml, style, imgs} = processContent(data.chapterInfos[i], {
+      cssFilename,
+    })
+
+    // xhtml
     {
-      id: 'style',
-      href: 'style.css',
+      const filename = `chapter-${chapterUid}.xhtml`
+      archive.append(xhtml, {name: `OEBPS/${filename}`})
+      items.push({
+        id: `chapter-${chapterUid}-content`,
+        title: c.title,
+        filename,
+      })
+    }
+
+    // css
+    archive.append(style, {name: `OEBPS/${cssFilename}`})
+    assets.push({
+      id: `chapter-${chapterUid}-style`,
+      href: `css/chapter-${chapterUid}.css`,
       mimetype: 'text/css',
-    },
-  ]
+    })
+
+    // imgs
+  }
 
   const renderData = {
     e: '',
@@ -81,14 +111,8 @@ export async function gen({epubFile, data}) {
     uuid: uuidv4(),
     date: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     lang: 'zh-CN',
-    items: chapterInfos.map((c) => {
-      const {chapterUid, title} = c
-      return {
-        id: 'chapter-' + chapterUid,
-        title,
-        raw: c,
-      }
-    }),
+    assets,
+    items,
   }
 
   // nav.xhtml

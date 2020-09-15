@@ -15,7 +15,7 @@
 			<navLabel>
 				<text>{{item.title}}</text>
 			</navLabel>
-			<content src="{{item.id}}.xhtml" />
+			<content src="{{item.filename}}" />
 		</navPoint>
 		{% endfor %}
 	</navMap>
