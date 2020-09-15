@@ -182,11 +182,17 @@ main()
 // check
 // java -jar ~/Downloads/dev_soft/epubcheck-4.2.4/epubcheck.jar ./data/book/25462428.epub
 
-// 可以生成了
-// TODO
-//
-// 1.图片 Remote resource reference not allowed; resource must be placed in the OCF.
-// 远程图片必须列在 content.opf 中
-//
-// 2. style
-// style 不能内联
+/**
+ * 可以生成了
+ * 图片 & css done
+ *
+ * TODO
+ * - toc 层级
+ * - 字体优化, 现在太难看了
+ *
+ * 优化
+ * - 样式合并
+ * - processContent 使用 worker + comlink, 加快速度
+ * - 图片加快速度, 本地存一个 hash 列表, 不使用 head check
+ * - 图片大小压缩, 现在很大.
+ */
