@@ -47,6 +47,9 @@ export default function processContent(info: any, options: ProcessContentOptions
     console.error(e.stack || e)
   }
 
+  // replace
+  html = html.replace(/\&nbsp\;/g, ' ')
+
   let style = chapterContentStyles
   try {
     style = prettier.format(style, {...prettierConfig, parser: 'css'})
@@ -60,6 +63,21 @@ export default function processContent(info: any, options: ProcessContentOptions
     style,
     imgs: ctx.imgs,
   }
+}
+
+/**
+ * get all img srcs
+ */
+
+export function getImgSrcs(html: string) {
+  // new $
+  const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
+
+  // collect
+  const srcs: string[] = []
+  traverse($.root()[0], $, collectImgSrc, srcs)
+
+  return srcs
 }
 
 // <style>
@@ -147,6 +165,17 @@ function removeUnusedSpan(el: CheerioElement, $: CheerioStatic): OnNodeResult {
   }
 
   return {traverseChildren: !shouldCombine}
+}
+
+/**
+ * 收集 img src
+ */
+
+function collectImgSrc(el: CheerioElement, $: CheerioStatic, ctx: any): OnNodeResult {
+  if (el.tagName?.toLowerCase?.() === 'img') {
+    const src = $(el).data('src')
+    ;(ctx as string[]).push(src)
+  }
 }
 
 function fixImgSrc(el: CheerioElement, $: CheerioStatic, ctx: any): OnNodeResult {

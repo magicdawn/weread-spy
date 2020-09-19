@@ -13,7 +13,7 @@
 	</metadata>
 
 	<manifest>
-		{% for item in items %}
+		{% for item in items -%}
 			<item id="{{item.id}}" href="{{item.filename}}" media-type="application/xhtml+xml" />
 		{% endfor %}
 
@@ -21,11 +21,11 @@
 			<item id="{{res.id}}" href="{{res.href}}" media-type="{{res.mimetype}}" />
 		{% endfor %}
 
-		{% for asset in assets %}
+		{% for asset in assets -%}
 			<item id="{{asset.id}}" href="{{asset.href}}" media-type="{{asset.mimetype}}" />
 		{% endfor %}
 
-		{% if cover %}
+		{% if cover -%}
 			<item id="{{cover.id}}" href="{{cover.href}}" media-type="{{cover.mimetype}}" />
 		{% endif %}
 
@@ -34,7 +34,7 @@
 	</manifest>
 
 	<spine toc="ncx">
-		{% for item in items %}
+		{% for item in items -%}
 			<itemref idref="{{item.id}}" />
 		{% endfor %}
 	</spine>

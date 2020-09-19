@@ -9,7 +9,9 @@
  */
 
 import path from 'path'
+import {execSync} from 'child_process'
 import fs from 'fs-extra'
+import _ from 'lodash'
 import nunjucks from 'nunjucks'
 import archiver from 'archiver'
 import fetch from 'node-fetch'
@@ -19,6 +21,11 @@ import moment from 'moment'
 import {createHash} from 'crypto'
 import pmap from 'promise.map'
 import dl from 'dl-vampire'
+import filenamify from 'filenamify'
+import execa from 'execa'
+import mime from 'mime'
+import processContent, {getImgSrcs} from './processContent'
+import request from './request'
 
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
@@ -33,23 +40,27 @@ export async function gen({epubFile, data}) {
     store: true,
   })
 
-  output
-    .on('close', () => {
-      console.log(archive.pointer() + ' total bytes')
-      console.log('archiver has been finalized and the output file descriptor has closed.')
-    })
-    .on('end', () => {
-      console.log('Data has been drained')
-    })
+  const p = new Promise((resolve, reject) => {
+    output
+      .on('close', () => {
+        console.log(archive.pointer() + ' total bytes')
+        console.log('archiver has been finalized and the output file descriptor has closed.')
+        resolve()
+      })
+      .on('end', () => {
+        console.log('Data has been drained')
+      })
 
-  archive
-    .on('warning', (err) => {
-      throw err
-    })
-    .on('error', (err) => {
-      throw err
-    })
-    .pipe(output)
+    archive
+      .on('warning', (err) => {
+        throw err
+      })
+      .on('error', (err) => {
+        throw err
+        reject(err)
+      })
+      .pipe(output)
+  })
 
   // mimetype file must be first
   archive.append('application/epub+zip', {name: 'mimetype'})
@@ -78,8 +89,58 @@ export async function gen({epubFile, data}) {
   //   }
   const items: Array<{id: string; title: string; filename: string}> = []
 
-  //
-  let extractImgs = []
+  // imgSrcs
+  let imgSrcs = []
+  for (let i = 0; i < chapterInfos.length; i++) {
+    const c = chapterInfos[i]
+    const curSrcs = getImgSrcs(data.chapterInfos[i].chapterContentHtml)
+    imgSrcs = imgSrcs.concat(curSrcs)
+  }
+
+  /**
+   * img 去重
+   */
+
+  let imgSrcSet = new Set()
+  const originalImgSrcs = [...imgSrcs]
+  imgSrcs = []
+  for (let src of originalImgSrcs) {
+    if (imgSrcSet.has(src)) {
+      continue
+    } else {
+      imgSrcSet.add(src)
+      imgSrcs.push(src)
+    }
+  }
+
+  const imgSrcInfo = {}
+  await pmap(
+    imgSrcs,
+    async (src, index, arr) => {
+      const {response} = await request.head(src, {getResponse: true})
+      debugger
+      const contentType = response.headers.get('content-type') || 'image/jpeg'
+      const ext = mime.getExtension(contentType)
+      let localFile: string
+
+      // https://res.weread.qq.com/wrepub/epub_25462428_587
+      const match = /^https?:\/\/res\.weread\.qq\.com\/wrepub\/(epub_[\d\w_-]+)$/.exec(src)
+      if (match) {
+        const name = match[1]
+        localFile = `imgs/${name}.${ext}`
+      } else {
+        const hash = md5(src)
+        localFile = `imgs/${hash}$.{ext}`
+      }
+
+      imgSrcInfo[src] = {
+        contentType,
+        ext,
+        localFile,
+      }
+    },
+    20
+  )
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
@@ -87,13 +148,10 @@ export async function gen({epubFile, data}) {
 
     const cssFilename = `css/chapter-${chapterUid}.css`
     const transformImgSrc = (src: string) => {
-      // no transform
-      const hash = md5(src)
-      const ext = 'jpg' // fixme
-      return `imgs/chapter-${chapterUid}/${hash}${ext ? '.' + ext : ''}`
+      return imgSrcInfo[src].localFile
     }
 
-    const {xhtml, style, imgs} = processContent(data.chapterInfos[i], {
+    const {xhtml, style} = processContent(data.chapterInfos[i], {
       cssFilename,
       transformImgSrc,
     })
@@ -116,26 +174,61 @@ export async function gen({epubFile, data}) {
       href: `css/chapter-${chapterUid}.css`,
       mimetype: 'text/css',
     })
+  }
 
-    // imgs
-    extractImgs = extractImgs.concat(imgs)
-    for (let {src, newSrc} of imgs) {
-      assets.push({
-        id: newSrc.replace(/[\/\.]/g, '-'),
-        href: newSrc,
-        mimetype: 'image/jpeg',
-      })
-    }
+  /**
+   * img assets
+   */
+  for (let src of imgSrcs) {
+    const {contentType, localFile} = imgSrcInfo[src]
+    assets.push({
+      id: localFile.replace(/[\/\.]/g, '-'),
+      href: localFile,
+      mimetype: contentType,
+    })
+  }
+
+  /**
+   * nav
+   */
+
+  const items2 = items.map((item, index) => {
+    return {...item, index: index + 1, level: chapterInfos[index].level as number}
+  })
+
+  type NavItem = {
+    id: string
+    title: string
+    filename: string
+    index: number
+    level: number
+    children?: NavItem[]
+  }
+
+  const navItems: NavItem[] = []
+  const startLevel = 1
+  for (let i = 0; i < items2.length; i++) {
+    const cur = items2[i]
+
+    let arr = navItems
+    _.times(cur.level - 1, () => {
+      const item = _.last(navItems)
+      if (!item.children) item.children = []
+      arr = item.children
+    })
+
+    arr.push(cur)
   }
 
   const renderData = {
     e: '',
     title: bookInfo.title,
-    uuid: uuidv4(),
-    date: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
+    uuid: bookId,
+    date: new Date(bookInfo.updateTime * 1000).toISOString().replace(/\.\d+Z$/, 'Z'),
     lang: 'zh-CN',
     assets,
     items,
+    navItems,
   }
 
   // nav.xhtml
@@ -151,43 +244,61 @@ export async function gen({epubFile, data}) {
 
   // 下载图片
   const localDir = path.join(APP_ROOT, `data/book/${bookId}/`)
-  await pmap(
-    extractImgs,
-    (item, index, arr) => {
-      const {src, newSrc} = item
-      console.log('handle img %s -> %s', src, newSrc)
-      return dl({url: src, file: path.join(localDir, newSrc)})
-    },
-    10
-  )
+  const imgDir = path.join(localDir, 'imgs')
+  const skip = fs.existsSync(imgDir) && fs.readdirSync(imgDir).length === imgSrcs.length
+  if (!skip) {
+    await pmap(
+      imgSrcs,
+      (src, index, arr) => {
+        const {localFile} = imgSrcInfo[src]
+        console.log('handle img %s -> %s', src, localFile)
+        return dl({url: src, file: path.join(localDir, localFile)})
+      },
+      10
+    )
+  }
   archive.directory(path.join(localDir, 'imgs'), 'OEBPS/imgs')
 
   archive.finalize()
+
+  return p
 }
 
-import data from '../../data/book/25462428.json'
-import processContent from './processContent'
-async function main() {
+function getInfo(id: string) {
+  const data = fs.readJsonSync(path.join(APP_ROOT, `data/book/${id}.json`))
+  let filename: string
+  filename = (data as any).startInfo.bookInfo.title
+  filename = filenamify(filename)
+  filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）
+  const file = path.join(APP_ROOT, `data/book/${filename}.epub`)
+
+  return {data, file}
+}
+
+export async function genEpubFor(id: string) {
+  const {data, file} = getInfo(id)
   await gen({
-    epubFile: path.join(APP_ROOT, `data/book/${(data as any).startInfo.bookId}.epub`),
+    epubFile: file,
     data,
   })
 }
 
-main()
+export async function checkEpub(id: string) {
+  const {data, file} = getInfo(id)
+  const epubcheckJar = path.join(APP_ROOT, 'assets/epubcheck.jar')
 
-// gen
-// src/utils/epub.ts
+  const cmd = `java -jar ${epubcheckJar} '${file}'`
+  console.log('[exec]: %s', cmd)
+  execa.commandSync(cmd, {stdio: 'inherit', shell: true})
+}
 
 // check
 // java -jar ~/Downloads/dev_soft/epubcheck-4.2.4/epubcheck.jar ./data/book/25462428.epub
 
 /**
- * 可以生成了
- * 图片 & css done
  *
  * TODO
- * - toc 层级
+ * - toc 层级, 做了在 iBook 看不出效果
  * - 字体优化, 现在太难看了
  *
  * 优化

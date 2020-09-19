@@ -2,6 +2,7 @@ import {CommandModule} from 'yargs'
 import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
+import {genEpubFor, checkEpub} from '../utils/epub'
 import processContent from '../utils/processContent'
 
 const APP_ROOT = path.join(__dirname, '../../')
@@ -23,5 +24,7 @@ const downloadCommand: CommandModule = {
 }
 export default downloadCommand
 
-import {gen} from '../utils/epub'
-async function main(id: string) {}
+async function main(id: string) {
+  await genEpubFor(id)
+  await checkEpub(id)
+}

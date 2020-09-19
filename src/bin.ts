@@ -10,9 +10,11 @@
 
 import yargs from 'yargs'
 import downloadCommand from './commands/download'
+import genEpubCommand from './commands/gen'
 
 yargs
   //
   .command(downloadCommand)
+  .command(genEpubCommand)
   .demandCommand()
   .help().argv

@@ -11,9 +11,9 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "epub.ts",
+      "name": "gen-epub",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/src/utils/epub.ts"],
+      "args": ["${workspaceFolder}/src/bin.ts", "gen-epub", "910419"],
       "autoAttachChildProcesses": false
     }
   ]

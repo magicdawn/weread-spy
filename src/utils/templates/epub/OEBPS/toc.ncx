@@ -10,12 +10,21 @@
 		<text>{{ title }}</text>
 	</docTitle>
 	<navMap>
-		{% for item in items %}
-		<navPoint id="{{item.id}}" playOrder="{{loop.index}}">
+		{% for item in navItems %}
+		<navPoint id="{{item.id}}" playOrder="{{item.index}}">
 			<navLabel>
 				<text>{{item.title}}</text>
 			</navLabel>
 			<content src="{{item.filename}}" />
+
+      {% for subitem in item.children %}
+  		<navPoint id="{{subitem.id}}" playOrder="{{subitem.index}}">
+  			<navLabel>
+  				<text>{{subitem.title}}</text>
+  			</navLabel>
+  			<content src="{{subitem.filename}}" />
+  		</navPoint>
+  		{% endfor %}
 		</navPoint>
 		{% endfor %}
 	</navMap>
