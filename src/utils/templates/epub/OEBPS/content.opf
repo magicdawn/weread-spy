@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
 
-	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-		<dc:identifier id="uid">urn:uuid:{{ uuid }}</dc:identifier>
+	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+		<dc:identifier id="uid">urn:wereadid:{{ uuid }}</dc:identifier>
 		<dc:title>{{ title | e }}</dc:title>
 		<dc:date>{{ date }}</dc:date>
 		<meta property="dcterms:modified">{{ date }}</meta>
+    <dc:creator opf:role="aut" opf:file-as="magicdawn">{{ creator }}</dc:creator>
+    <dc:publisher>{{ publisher }}</dc:publisher>
+    <dc:description>{{ description }}</dc:description>
 		<dc:language>{{ lang | default('en-US')}}</dc:language>
-		{% if cover %}
+		{% if cover -%}
 			<meta name="cover" content="{{ cover.id }}" />
-		{% endif %}
+		{%- endif %}
 	</metadata>
 
 	<manifest>
