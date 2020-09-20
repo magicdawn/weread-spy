@@ -104,7 +104,7 @@ async function main(bookReadUrl: string, justLaunch: boolean) {
   }
 
   // save map
-  const mapFile = path.join(APP_ROOT, 'data/map.json')
+  const mapFile = path.join(APP_ROOT, 'data/book/map.json')
   let map: any
   try {
     map = fse.readJsonSync(mapFile)

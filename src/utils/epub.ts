@@ -262,21 +262,23 @@ export async function checkEpub(id: string) {
 // java -jar ~/Downloads/dev_soft/epubcheck-4.2.4/epubcheck.jar ./data/book/25462428.epub
 
 /**
- *
- * TODO
- * - toc 层级, 做了在 iBook 看不出效果
- * - 字体优化, 现在太难看了
- *
- * 优化
- * - 样式合并
- * - processContent 使用 worker + comlink, 加快速度
- * - 图片加快速度, 本地存一个 hash 列表, 不使用 head check
- * - 图片大小压缩, 现在很大.
- *
+ * - toc 层级, 做了在 iBook 看不出效果, clearview 有效果
  *
  * - processContent 使用 worker + comlink, 加快速度
- *
  * 不使用
  * processContent cost 127512 ms
  * weread-spy gen -u https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180
+ * 使用 60+s
+ *
+ * 字体优化, 现在太难看了
+ * 下载汉仪旗黑字体, 使用默认样式挺好, 另支持自定义 css
+ *
+ * - 样式合并
+ * 多页样式不一样
+ *
+ * - 图片大小压缩, 现在很大.
+ * TODO
+ *
+ * 支持 css background-image
+ * TODO 现在 check 会报错
  */
