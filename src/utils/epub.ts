@@ -9,29 +9,22 @@
  */
 
 import path from 'path'
-import {execSync} from 'child_process'
+import {performance} from 'perf_hooks'
 import fs from 'fs-extra'
 import _ from 'lodash'
 import nunjucks from 'nunjucks'
 import archiver from 'archiver'
-import fetch from 'node-fetch'
-import {launch} from 'puppeteer'
-import {v4 as uuidv4} from 'uuid'
-import moment from 'moment'
-import {createHash} from 'crypto'
 import pmap from 'promise.map'
-import dl from 'dl-vampire'
 import filenamify from 'filenamify'
 import execa from 'execa'
-import mime from 'mime'
-import processContent, {getImgSrcs} from './processContent'
-import request from './request'
+import processContent from './processContent'
 import debugFactory from 'debug'
 import {Data, APP_ROOT} from './common'
 import getImgSrcInfo from './epub-img'
+import {createWorker, createWorkers} from './processContent.main'
+import mapOnWorker from './mapOnWorker'
 
 const debug = debugFactory('weread-spy:utils:epub')
-const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
 export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
@@ -71,7 +64,6 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   // static files from META-INF
   archive.directory(path.join(template_base, 'META-INF'), 'META-INF')
 
-  const contentTemplate = await fs.readFile(path.join(template_base, 'OEBPS/content.xhtml'), 'utf8')
   const navTemplate = await fs.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8')
   const tocTemplate = await fs.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8')
   const opfTemplate = await fs.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8')
@@ -95,19 +87,30 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   // 图片信息
   const imgSrcInfo = await getImgSrcInfo(data)
 
+  const processContentStart = performance.now()
+  const workers = createWorkers()
+  const processResults = await mapOnWorker(
+    chapterInfos,
+    async (chapterInfo, i, arr, worker) => {
+      const c = chapterInfos[i]
+      const {chapterUid} = c
+      const cssFilename = `css/chapter-${chapterUid}.css`
+      return await worker.api.processContent(data.infos[i], {
+        cssFilename,
+        imgSrcInfo,
+      })
+    },
+    workers
+  )
+  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
+  workers.forEach((w) => w.nodeWorker.unref())
+
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
     const {chapterUid} = c
 
     const cssFilename = `css/chapter-${chapterUid}.css`
-    const transformImgSrc = (src: string) => {
-      return imgSrcInfo[src].localFile
-    }
-
-    const {xhtml, style} = processContent(data.infos[i], {
-      cssFilename,
-      transformImgSrc,
-    })
+    const {xhtml, style} = processResults[i]
 
     // xhtml
     {
@@ -231,7 +234,11 @@ export async function checkEpub(id: string) {
 
   const cmd = `java -jar ${epubcheckJar} '${file}'`
   console.log('[exec]: %s', cmd)
-  execa.commandSync(cmd, {stdio: 'inherit', shell: true})
+  try {
+    execa.commandSync(cmd, {stdio: 'inherit', shell: true})
+  } catch (error) {
+    // ignore
+  }
 }
 
 // check
@@ -248,4 +255,11 @@ export async function checkEpub(id: string) {
  * - processContent 使用 worker + comlink, 加快速度
  * - 图片加快速度, 本地存一个 hash 列表, 不使用 head check
  * - 图片大小压缩, 现在很大.
+ *
+ *
+ * - processContent 使用 worker + comlink, 加快速度
+ *
+ * 不使用
+ * processContent cost 127512 ms
+ * weread-spy gen -u https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180
  */

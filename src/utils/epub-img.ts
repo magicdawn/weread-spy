@@ -13,10 +13,12 @@ import fse from 'fs-extra'
 const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
+export interface ImgSrcInfo {
+  [key: string]: {contentType: string; ext: string; localFile: string}
+}
+
 export default async function getImgSrcInfo(data: Data) {
-  let imgSrcInfo: {
-    [key: string]: {contentType: string; ext: string; localFile: string}
-  } = {}
+  let imgSrcInfo: ImgSrcInfo = {}
 
   const bookDir = path.join(APP_ROOT, `data/book/${data.startInfo.bookId}/`)
   const cacheFile = path.join(bookDir, 'imgs.json')

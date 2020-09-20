@@ -4,18 +4,20 @@ import prettier from 'prettier'
 import _ from 'lodash'
 import prettierConfig from '../../prettier.config'
 import debugFactory from 'debug'
+import {Info} from './common'
+import {ImgSrcInfo} from './epub-img'
 
 const debug = debugFactory('weread-spy:utils:processContent')
 
 type TransformImgSrc = (src: string) => string
 interface ProcessContentOptions {
   cssFilename: string
-  transformImgSrc: TransformImgSrc
+  imgSrcInfo: ImgSrcInfo
 }
 
-export default function processContent(info: any, options: ProcessContentOptions) {
+export default function processContent(info: Info, options: ProcessContentOptions) {
   const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
-  const {cssFilename, transformImgSrc} = options
+  const {cssFilename, imgSrcInfo} = options
   debug('processContent for title=%s chapterUid=%s', info.bookInfo.title, currentChapterId)
 
   let html = chapterContentHtml
@@ -25,24 +27,24 @@ export default function processContent(info: any, options: ProcessContentOptions
 
   // new $
   const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
-  const checkArgs: () => [CheerioElement, CheerioStatic] = () => [$.root()[0], $]
-  debug('cheerio loaded')
+  // debug('cheerio loaded')
 
   // remove all data-xxx
   traverse($.root()[0], $, removeDataAttr)
-  debug('removeDataAttr complete')
+  // debug('removeDataAttr complete')
 
   // combine span
   traverse($.root()[0], $, removeUnusedSpan)
-  debug('removeUnusedSpan complete')
+  // debug('removeUnusedSpan complete')
 
   // 图片
+  const transformImgSrc = (src: string) => imgSrcInfo[src].localFile
   const ctx: {transformImgSrc: TransformImgSrc; imgs: Array<{src: string; newSrc: string}>} = {
     transformImgSrc,
     imgs: [],
   }
   traverse($.root()[0], $, fixImgSrc, ctx)
-  debug('fixImgSrc complete')
+  // debug('fixImgSrc complete')
 
   // get xhtml
   html = $.xml().trim()

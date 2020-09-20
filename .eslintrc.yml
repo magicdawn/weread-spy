@@ -3,3 +3,6 @@ root: true
 
 extends:
   - '@magicdawn'
+
+parserOptions:
+  sourceType: module
