@@ -26,13 +26,16 @@ import execa from 'execa'
 import mime from 'mime'
 import processContent, {getImgSrcs} from './processContent'
 import request from './request'
+import debugFactory from 'debug'
 
+const debug = debugFactory('weread-spy:utils:epub')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
 const UA = `percollate/v1.0.0`
 const APP_ROOT = path.join(__dirname, '../../')
 
 export async function gen({epubFile, data}) {
+  debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
   const template_base = path.join(__dirname, 'templates/epub/')
 
   const output = fs.createWriteStream(epubFile)
@@ -112,6 +115,11 @@ export async function gen({epubFile, data}) {
       imgSrcs.push(src)
     }
   }
+  debug(
+    'imgSrcs collected, length = %s, unique length = %s',
+    originalImgSrcs.length,
+    imgSrcs.length
+  )
 
   const imgSrcInfo = {}
   await pmap(
@@ -141,6 +149,7 @@ export async function gen({epubFile, data}) {
     },
     20
   )
+  debug('imgSrcs contentType fetched')
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
