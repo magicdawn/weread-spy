@@ -27,16 +27,16 @@ import mime from 'mime'
 import processContent, {getImgSrcs} from './processContent'
 import request from './request'
 import debugFactory from 'debug'
+import {Data, APP_ROOT} from './common'
+import getImgSrcInfo from './epub-img'
 
 const debug = debugFactory('weread-spy:utils:epub')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
-const UA = `percollate/v1.0.0`
-const APP_ROOT = path.join(__dirname, '../../')
-
-export async function gen({epubFile, data}) {
+export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
   const template_base = path.join(__dirname, 'templates/epub/')
+  const bookDir = path.join(APP_ROOT, `data/book/${data.startInfo.bookId}/`)
 
   const output = fs.createWriteStream(epubFile)
   const archive = archiver('zip', {
@@ -92,64 +92,8 @@ export async function gen({epubFile, data}) {
   //   }
   const items: Array<{id: string; title: string; filename: string}> = []
 
-  // imgSrcs
-  let imgSrcs = []
-  for (let i = 0; i < chapterInfos.length; i++) {
-    const c = chapterInfos[i]
-    const curSrcs = getImgSrcs(data.chapterInfos[i].chapterContentHtml)
-    imgSrcs = imgSrcs.concat(curSrcs)
-  }
-
-  /**
-   * img 去重
-   */
-
-  let imgSrcSet = new Set()
-  const originalImgSrcs = [...imgSrcs]
-  imgSrcs = []
-  for (let src of originalImgSrcs) {
-    if (imgSrcSet.has(src)) {
-      continue
-    } else {
-      imgSrcSet.add(src)
-      imgSrcs.push(src)
-    }
-  }
-  debug(
-    'imgSrcs collected, length = %s, unique length = %s',
-    originalImgSrcs.length,
-    imgSrcs.length
-  )
-
-  const imgSrcInfo = {}
-  await pmap(
-    imgSrcs,
-    async (src, index, arr) => {
-      const {response} = await request.head(src, {getResponse: true})
-      debugger
-      const contentType = response.headers.get('content-type') || 'image/jpeg'
-      const ext = mime.getExtension(contentType)
-      let localFile: string
-
-      // https://res.weread.qq.com/wrepub/epub_25462428_587
-      const match = /^https?:\/\/res\.weread\.qq\.com\/wrepub\/(epub_[\d\w_-]+)$/.exec(src)
-      if (match) {
-        const name = match[1]
-        localFile = `imgs/${name}.${ext}`
-      } else {
-        const hash = md5(src)
-        localFile = `imgs/${hash}$.{ext}`
-      }
-
-      imgSrcInfo[src] = {
-        contentType,
-        ext,
-        localFile,
-      }
-    },
-    20
-  )
-  debug('imgSrcs contentType fetched')
+  // 图片信息
+  const imgSrcInfo = await getImgSrcInfo(data)
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
@@ -160,7 +104,7 @@ export async function gen({epubFile, data}) {
       return imgSrcInfo[src].localFile
     }
 
-    const {xhtml, style} = processContent(data.chapterInfos[i], {
+    const {xhtml, style} = processContent(data.infos[i], {
       cssFilename,
       transformImgSrc,
     })
@@ -188,7 +132,7 @@ export async function gen({epubFile, data}) {
   /**
    * img assets
    */
-  for (let src of imgSrcs) {
+  for (let src of Object.keys(imgSrcInfo)) {
     const {contentType, localFile} = imgSrcInfo[src]
     assets.push({
       id: localFile.replace(/[\/\.]/g, '-'),
@@ -255,32 +199,17 @@ export async function gen({epubFile, data}) {
   const toc = nunjucks.renderString(tocTemplate, renderData)
   archive.append(toc, {name: 'OEBPS/toc.ncx'})
 
-  // 下载图片
-  const localDir = path.join(APP_ROOT, `data/book/${bookId}/`)
-  const imgDir = path.join(localDir, 'imgs')
-  const skip = fs.existsSync(imgDir) && fs.readdirSync(imgDir).length === imgSrcs.length
-  if (!skip) {
-    await pmap(
-      imgSrcs,
-      (src, index, arr) => {
-        const {localFile} = imgSrcInfo[src]
-        console.log('handle img %s -> %s', src, localFile)
-        return dl({url: src, file: path.join(localDir, localFile)})
-      },
-      10
-    )
-  }
-  archive.directory(path.join(localDir, 'imgs'), 'OEBPS/imgs')
+  // 添加图片
+  archive.directory(path.join(bookDir, 'imgs'), 'OEBPS/imgs')
 
   archive.finalize()
-
   return p
 }
 
 function getInfo(id: string) {
   const data = fs.readJsonSync(path.join(APP_ROOT, `data/book/${id}.json`))
   let filename: string
-  filename = (data as any).startInfo.bookInfo.title
+  filename = (data as Data).startInfo.bookInfo.title
   filename = filenamify(filename)
   filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）
   const file = path.join(APP_ROOT, `data/book/${filename}.epub`)

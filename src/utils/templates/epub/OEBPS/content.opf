@@ -6,7 +6,7 @@
 		<dc:title>{{ title | e }}</dc:title>
 		<dc:date>{{ date }}</dc:date>
 		<meta property="dcterms:modified">{{ date }}</meta>
-    <dc:creator opf:role="aut" opf:file-as="magicdawn">{{ creator }}</dc:creator>
+    <dc:creator>{{ creator }}</dc:creator>
     <dc:publisher>{{ publisher }}</dc:publisher>
     <dc:description>{{ description }}</dc:description>
 		<dc:language>{{ lang | default('en-US')}}</dc:language>

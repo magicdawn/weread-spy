@@ -8,23 +8,36 @@ const APP_ROOT = path.join(__dirname, '../../')
 const userDataDir = path.join(APP_ROOT, 'data/pptr')
 
 const downloadCommand: CommandModule = {
-  command: 'download <url>',
+  command: 'download',
   describe: 'download a book',
   aliases: ['dl'],
   builder(yargs) {
-    return yargs.positional('url', {
-      desc: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
-      required: true,
-    })
+    return yargs
+      .option('url', {
+        alias: 'u',
+        desc: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
+        required: false,
+      })
+      .option('just-launch', {
+        type: 'boolean',
+        default: false,
+      })
   },
   handler(argv) {
     console.log(argv)
-    main(argv.url as string)
+    const url = argv.url as string
+    const justLaunch = argv.justLaunch as boolean
+
+    if (!justLaunch && !url) {
+      return console.error('url is required')
+    }
+
+    main(url, justLaunch)
   },
 }
 export default downloadCommand
 
-async function main(bookReadUrl: string) {
+async function main(bookReadUrl: string, justLaunch: boolean) {
   const browser = await pptr.launch({
     headless: false,
     devtools: false,
@@ -44,6 +57,11 @@ async function main(bookReadUrl: string) {
     // 等待登录成功
     await page.waitForSelector('.wr_avatar.navBar_avatar')
     console.log('登录完成')
+  }
+
+  // 只是启动浏览器
+  if (justLaunch) {
+    return
   }
 
   await page.goto(bookReadUrl)
@@ -85,6 +103,17 @@ async function main(bookReadUrl: string) {
     currentChapterId: state.reader.currentChapter.chapterUid,
   }
 
+  // save map
+  const mapFile = path.join(APP_ROOT, 'data/map.json')
+  let map: any
+  try {
+    map = fse.readJsonSync(mapFile)
+  } catch (error) {
+    // noop
+  }
+  map = {...map, [bookReadUrl]: startInfo.bookId}
+  fse.outputJsonSync(mapFile, map, {spaces: 2})
+
   const changeChapter = async (uid: number) => {
     await page.$eval(
       '#routerView',
@@ -95,7 +124,7 @@ async function main(bookReadUrl: string) {
     )
   }
 
-  const chapterInfos = []
+  const infos = []
   for (let c of startInfo.chapterInfos) {
     const {chapterUid} = c
 
@@ -124,15 +153,14 @@ async function main(bookReadUrl: string) {
       currentChapterId: state.reader.currentChapter.chapterUid,
     }
 
-    chapterInfos.push(info)
+    infos.push(info)
   }
 
   // 书籍信息
   const json = {
     startInfo,
-    chapterInfos,
+    infos,
   }
   await fse.outputJson(path.join(APP_ROOT, `data/book/${startInfo.bookId}.json`), json, {spaces: 2})
-
   await browser.close()
 }
