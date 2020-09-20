@@ -87,6 +87,22 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   // 图片信息
   const imgSrcInfo = await getImgSrcInfo(data)
 
+  // extra css
+  const extraCss = []
+  const customCssFile = path.join(bookDir, 'custom.css')
+  if (await fs.pathExists(customCssFile)) {
+    extraCss.push('custom.css')
+
+    assets.push({
+      id: `custom-style`,
+      href: `custom.css`,
+      mimetype: 'text/css',
+    })
+
+    const customCssContent = await fs.readFile(customCssFile)
+    archive.append(customCssContent, {name: `OEBPS/custom.css`})
+  }
+
   const processContentStart = performance.now()
   const workers = createWorkers()
   const processResults = await mapOnWorker(
@@ -94,9 +110,9 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     async (chapterInfo, i, arr, worker) => {
       const c = chapterInfos[i]
       const {chapterUid} = c
-      const cssFilename = `css/chapter-${chapterUid}.css`
+      const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
       return await worker.api.processContent(data.infos[i], {
-        cssFilename,
+        cssFilenames,
         imgSrcInfo,
       })
     },
@@ -108,8 +124,6 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
     const {chapterUid} = c
-
-    const cssFilename = `css/chapter-${chapterUid}.css`
     const {xhtml, style} = processResults[i]
 
     // xhtml
@@ -124,12 +138,15 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     }
 
     // css
-    archive.append(style, {name: `OEBPS/${cssFilename}`})
-    assets.push({
-      id: `chapter-${chapterUid}-style`,
-      href: `css/chapter-${chapterUid}.css`,
-      mimetype: 'text/css',
-    })
+    {
+      const cssFilename = `css/chapter-${chapterUid}.css`
+      archive.append(style, {name: `OEBPS/${cssFilename}`})
+      assets.push({
+        id: `chapter-${chapterUid}-style`,
+        href: `css/chapter-${chapterUid}.css`,
+        mimetype: 'text/css',
+      })
+    }
   }
 
   /**

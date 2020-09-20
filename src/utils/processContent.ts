@@ -11,19 +11,19 @@ const debug = debugFactory('weread-spy:utils:processContent')
 
 type TransformImgSrc = (src: string) => string
 interface ProcessContentOptions {
-  cssFilename: string
+  cssFilenames: string[]
   imgSrcInfo: ImgSrcInfo
 }
 
 export default function processContent(info: Info, options: ProcessContentOptions) {
   const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
-  const {cssFilename, imgSrcInfo} = options
+  const {cssFilenames, imgSrcInfo} = options
   debug('processContent for title=%s chapterUid=%s', info.bookInfo.title, currentChapterId)
 
   let html = chapterContentHtml
 
   // apply templates
-  html = applyTemplate({style: chapterContentStyles, content: html, cssFilename})
+  html = applyTemplate({style: chapterContentStyles, content: html, cssFilenames})
 
   // new $
   const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
@@ -96,11 +96,11 @@ export function getImgSrcs(html: string) {
 function applyTemplate({
   style,
   content,
-  cssFilename,
+  cssFilenames,
 }: {
   style: string
   content: string
-  cssFilename: string
+  cssFilenames: string[]
 }) {
   const tpl = `
     <?xml version="1.0" encoding="UTF-8"?>
@@ -109,7 +109,9 @@ function applyTemplate({
 		    <meta charset="UTF-8" />
 		    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		    <title>Document</title>
-        <link rel="stylesheet" href="{{cssFilename}}" />
+        {%- for css in cssFilenames -%}
+        <link rel="stylesheet" href="{{css}}" />
+        {%- endfor %}
 		  </head>
 		  <body>
 		    <div class="readerChapterContent">
@@ -123,7 +125,7 @@ function applyTemplate({
     .renderString(tpl, {
       style,
       content,
-      cssFilename,
+      cssFilenames,
     })
     .trim()
 
