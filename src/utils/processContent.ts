@@ -1,6 +1,7 @@
 import cheerio from 'cheerio'
 import njk from 'nunjucks'
 import prettier from 'prettier'
+import _ from 'lodash'
 import prettierConfig from '../../prettier.config'
 
 type TransformImgSrc = (src: string) => string
@@ -150,21 +151,54 @@ function removeDataAttr(el: CheerioElement, $: CheerioStatic): OnNodeResult {
 }
 
 function removeUnusedSpan(el: CheerioElement, $: CheerioStatic): OnNodeResult {
-  const shouldCombine =
-    el.childNodes?.length &&
-    el.childNodes?.every(
-      (c) => c.tagName?.toLowerCase() === 'span' && Object.keys(c.attribs || {}).length === 0
-    )
+  if (!el.childNodes?.length) {
+    return
+  }
 
-  // self
+  const isSimpleTextSpan = (c: CheerioElement) =>
+    c.tagName?.toLowerCase() === 'span' && Object.keys(c.attribs || {}).length === 0
+
+  const shouldCombine = el.childNodes.every(isSimpleTextSpan)
+  const $el = $(el)
   if (shouldCombine) {
-    const $el = $(el)
     const text = $el.text()
     $el.empty()
     $el.append(`<span>${text}</span>`)
+    return {traverseChildren: false}
   }
 
-  return {traverseChildren: !shouldCombine}
+  const rate = el.childNodes.filter((c) => !isSimpleTextSpan(c)).length / el.childNodes.length
+  if (rate < 1 / 10) {
+    const arr: Cheerio[] = []
+    let lastIsSimpleTextSpan = true
+
+    for (let c of el.childNodes) {
+      if (isSimpleTextSpan(c)) {
+        let cur$ = _.last(arr)
+        if (cur$ && lastIsSimpleTextSpan) {
+          arr[arr.length - 1] = cur$.add(c)
+        } else {
+          arr.push($(c))
+        }
+      } else {
+        arr.push($(c))
+      }
+      lastIsSimpleTextSpan = isSimpleTextSpan(c)
+    }
+
+    $el.empty()
+
+    for (let cur$ of arr) {
+      if (cur$.toArray().every(isSimpleTextSpan)) {
+        $el.append(`<span>${cur$.text()}</span>`)
+      } else {
+        $el.append(cur$)
+      }
+    }
+    return {traverseChildren: false}
+  }
+
+  return {traverseChildren: true}
 }
 
 /**
