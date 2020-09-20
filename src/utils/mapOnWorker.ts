@@ -11,7 +11,7 @@ export default async function mapOnWorker<IN, OUT, W extends Object>(
 
     const workerIsUnsing = new WeakMap()
 
-    const getWorker = (index) => {
+    const getWorker = (index: number) => {
       for (let i = 0; i < workers.length; i++) {
         const worker = workers[i]
         if (workerIsUnsing.get(worker)) {
