@@ -177,10 +177,13 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     children?: NavItem[]
   }
 
+  let maxNavDepth = 1
+
   const navItems: NavItem[] = []
   const startLevel = 1
   for (let i = 0; i < items2.length; i++) {
     const cur = items2[i]
+    maxNavDepth = Math.max(maxNavDepth, cur.level)
 
     let arr = navItems
     _.times(cur.level - 1, () => {
@@ -193,9 +196,10 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   }
 
   const renderData = {
+    bookId,
+    uuid: bookId,
     e: '',
     title: bookInfo.title,
-    uuid: bookId,
     date: new Date(bookInfo.updateTime * 1000).toISOString().replace(/\.\d+Z$/, 'Z'),
     lang: 'zh-CN',
     creator: bookInfo.author,
@@ -205,6 +209,7 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     assets,
     items,
     navItems,
+    maxNavDepth,
   }
 
   // nav.xhtml

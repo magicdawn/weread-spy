@@ -42,6 +42,7 @@ async function main(bookReadUrl: string, justLaunch: boolean) {
     headless: false,
     devtools: false,
     userDataDir,
+    defaultViewport: null,
   })
   const page = await browser.newPage()
   await page.goto('https://weread.qq.com/')
@@ -58,6 +59,9 @@ async function main(bookReadUrl: string, justLaunch: boolean) {
     await page.waitForSelector('.wr_avatar.navBar_avatar')
     console.log('登录完成')
   }
+
+  const ua = await browser.userAgent()
+  console.log('ua = %s', ua)
 
   // 只是启动浏览器
   if (justLaunch) {

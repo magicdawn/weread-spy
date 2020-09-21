@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
 	<head>
-		<meta name="dtb:uid" content="urn:uuid:{{uuid}}"/>
-		<meta name="dtb:depth" content="1"/>
+		<meta name="dtb:uid" content="{{ bookId }}"/>
+		<meta name="dtb:depth" content="{{ maxNavDepth | default(1) }}"/>
 		<meta name="dtb:totalPageCount" content="0"/>
 		<meta name="dtb:maxPageNumber" content="0"/>
 	</head>
@@ -11,21 +11,20 @@
 	</docTitle>
 	<navMap>
 		{% for item in navItems %}
-		<navPoint id="{{item.id}}" playOrder="{{item.index}}">
+		<navPoint id="navPoint-for-{{item.id}}" playOrder="{{item.index}}">
 			<navLabel>
 				<text>{{item.title}}</text>
 			</navLabel>
 			<content src="{{item.filename}}" />
-
       {% for subitem in item.children %}
-  		<navPoint id="{{subitem.id}}" playOrder="{{subitem.index}}">
+  		<navPoint id="navPoint-for-{{subitem.id}}" playOrder="{{subitem.index}}">
   			<navLabel>
   				<text>{{subitem.title}}</text>
   			</navLabel>
   			<content src="{{subitem.filename}}" />
   		</navPoint>
-  		{% endfor %}
+  		{%- endfor %}
 		</navPoint>
-		{% endfor %}
+		{%- endfor %}
 	</navMap>
 </ncx>

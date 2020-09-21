@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
-
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="weread-book-id">
 	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
-		<dc:identifier id="uid">urn:wereadid:{{ uuid }}</dc:identifier>
+    <dc:identifier id="weread-book-id">{{ bookId }}</dc:identifier>
 		<dc:title>{{ title | e }}</dc:title>
 		<dc:date>{{ date }}</dc:date>
 		<meta property="dcterms:modified">{{ date }}</meta>
@@ -37,6 +36,7 @@
 	</manifest>
 
 	<spine toc="ncx">
+    <itemref idref="nav" />
 		{% for item in items -%}
 			<itemref idref="{{item.id}}" />
 		{% endfor %}

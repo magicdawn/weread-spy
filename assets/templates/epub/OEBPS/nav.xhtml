@@ -7,11 +7,20 @@
   <body>
     <nav epub:type="toc" id="toc">
       <ol>
-        {% for item in items %}
+        {% for item in navItems %}
         <li>
           <a href="{{item.filename}}">{{ item.title | e }}</a>
+          {% if item.children %}
+          <ol>
+            {% for subitem in item.children %}
+            <li>
+              <a href="{{subitem.filename}}">{{ subitem.title | e }}</a>
+            </li>
+            {%- endfor %}
+          </ol>
+          {%- endif %}
         </li>
-        {% endfor %}
+        {%- endfor %}
       </ol>
     </nav>
   </body>
