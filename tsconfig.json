@@ -1,13 +1,16 @@
 {
+  "include": ["src/**/*"],
   "compilerOptions": {
-    "outDir": "./lib",
+    "rootDir": "src",
+    "outDir": "lib",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "target": "es2019",
-    "strict": false
-  },
-  "include": ["./src/**/*"]
+    "module": "CommonJS",
+    "strict": false,
+    "skipLibCheck": true
+  }
 }

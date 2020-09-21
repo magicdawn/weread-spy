@@ -3,9 +3,8 @@ import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
 import {genEpubFor, checkEpub} from '../utils/epub'
-import processContent from '../utils/processContent'
+import {APP_ROOT} from '../utils/common'
 
-const APP_ROOT = path.join(__dirname, '../../')
 const userDataDir = path.join(APP_ROOT, 'data/pptr')
 
 const downloadCommand: CommandModule = {
@@ -36,7 +35,7 @@ async function main(url: string) {
 
   const id = map[url]
   if (!id) {
-    console.error('can not find id !!!')
+    return console.error('can not find id !!!')
   }
 
   await genEpubFor(id)

@@ -2,12 +2,12 @@ import cheerio from 'cheerio'
 import njk from 'nunjucks'
 import prettier from 'prettier'
 import _ from 'lodash'
-import prettierConfig from '../../prettier.config'
 import debugFactory from 'debug'
-import {Info} from './common'
-import {ImgSrcInfo} from './epub-img'
+import {Info} from '../common'
+import {ImgSrcInfo} from '../epub-img'
 
 const debug = debugFactory('weread-spy:utils:processContent')
+const prettierConfig = require('@magicdawn/prettier-config') as prettier.Options
 
 type TransformImgSrc = (src: string) => string
 interface ProcessContentOptions {

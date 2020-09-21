@@ -1,4 +1,4 @@
-import type exampleStartInfo from './example-start-info.json'
+import type exampleStartInfo from './processContent/example-start-info.json'
 import path from 'path'
 
 export type Info = typeof exampleStartInfo

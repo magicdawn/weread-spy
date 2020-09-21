@@ -2,7 +2,7 @@ import {CommandModule} from 'yargs'
 import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
-import processContent from '../utils/processContent'
+import processContent from '../utils/processContent/index'
 
 const APP_ROOT = path.join(__dirname, '../../')
 const userDataDir = path.join(APP_ROOT, 'data/pptr')

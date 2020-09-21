@@ -17,18 +17,17 @@ import archiver from 'archiver'
 import pmap from 'promise.map'
 import filenamify from 'filenamify'
 import execa from 'execa'
-import processContent from './processContent'
 import debugFactory from 'debug'
 import {Data, APP_ROOT} from './common'
 import getImgSrcInfo from './epub-img'
-import {createWorker, createWorkers} from './processContent.main'
+import {createWorker, createWorkers} from './processContent/index.main'
 import mapOnWorker from './mapOnWorker'
 
 const debug = debugFactory('weread-spy:utils:epub')
 
 export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
-  const template_base = path.join(__dirname, 'templates/epub/')
+  const template_base = path.join(APP_ROOT, 'assets/templates/epub/')
   const bookDir = path.join(APP_ROOT, `data/book/${data.startInfo.bookId}/`)
 
   const output = fs.createWriteStream(epubFile)
