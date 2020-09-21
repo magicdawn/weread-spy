@@ -22,13 +22,17 @@ import {Data, APP_ROOT} from './common'
 import getImgSrcInfo from './epub-img'
 import {createWorker, createWorkers} from './processContent/index.main'
 import mapOnWorker from './mapOnWorker'
+import {FileItem, FileItemFields} from './EpubModel'
+import Book from './Book'
 
 const debug = debugFactory('weread-spy:utils:epub')
 
 export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
   const template_base = path.join(APP_ROOT, 'assets/templates/epub/')
-  const bookDir = path.join(APP_ROOT, `data/book/${data.startInfo.bookId}/`)
+
+  const book = new Book(data)
+  const {bookDir, addFile, addTextFile} = book
 
   const output = fs.createWriteStream(epubFile)
   const archive = archiver('zip', {
@@ -63,43 +67,49 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   // static files from META-INF
   archive.directory(path.join(template_base, 'META-INF'), 'META-INF')
 
-  const navTemplate = await fs.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8')
-  const tocTemplate = await fs.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8')
-  const opfTemplate = await fs.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8')
+  const [navTemplate, tocTemplate, opfTemplate, coverTemplate] = await Promise.all([
+    fs.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
+    fs.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8'),
+    fs.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8'),
+    fs.readFile(path.join(template_base, 'OEBPS/cover.xhtml'), 'utf8'),
+  ])
 
   // 章节 html
   const {chapterInfos, bookInfo, bookId} = data.startInfo
 
-  // {
-  //   id: 'style',
-  //   href: 'style.css',
-  //   mimetype: 'text/css',
-  // },
-  const assets: Array<{id: string; href: string; mimetype: string; properties?: string}> = []
-
-  //     id: `chapter-${chapterUid}-xhtml`,
-  //     title,
-  //     raw: c,
-  //   }
-  const items: Array<{id: string; title: string; filename: string}> = []
-
   // 图片信息
-  const imgSrcInfo = await getImgSrcInfo(data)
+  const imgSrcInfo = await getImgSrcInfo(book)
+
+  /**
+   * cover
+   */
+
+  const coverUrl = book.coverUrl
+  let coverFileItem: FileItem // save for manifest.meta.cover
+  let coverPageFileItem: FileItem
+
+  if (book.coverUrl) {
+    const {localFile, contentType} = imgSrcInfo[coverUrl]
+    delete imgSrcInfo[coverUrl]
+
+    // cover img
+    coverFileItem = new FileItem({filename: localFile}) // 内容随 imgs 打包
+    addFile(coverFileItem)
+
+    // cover xhtml
+    coverPageFileItem = new FileItem({
+      filename: 'cover.xhtml',
+      content: nunjucks.renderString(coverTemplate, {cover: coverFileItem}),
+    })
+    book.coverPageFile = coverPageFileItem
+  }
 
   // extra css
   const extraCss = []
   const customCssFile = path.join(bookDir, 'custom.css')
   if (await fs.pathExists(customCssFile)) {
     extraCss.push('custom.css')
-
-    assets.push({
-      id: `custom-style`,
-      href: `custom.css`,
-      mimetype: 'text/css',
-    })
-
-    const customCssContent = await fs.readFile(customCssFile)
-    archive.append(customCssContent, {name: `OEBPS/custom.css`})
+    addFile({filename: 'custom.css', filepath: customCssFile})
   }
 
   const processContentStart = performance.now()
@@ -128,93 +138,27 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     // xhtml
     {
       const filename = `chapter-${chapterUid}.xhtml`
-      archive.append(xhtml, {name: `OEBPS/${filename}`})
-      items.push({
-        id: `chapter-${chapterUid}-content`,
-        title: c.title,
-        filename,
-      })
+      addTextFile({filename, content: xhtml})
     }
 
     // css
     {
-      const cssFilename = `css/chapter-${chapterUid}.css`
-      archive.append(style, {name: `OEBPS/${cssFilename}`})
-      assets.push({
-        id: `chapter-${chapterUid}-style`,
-        href: `css/chapter-${chapterUid}.css`,
-        mimetype: 'text/css',
-      })
+      const filename = `css/chapter-${chapterUid}.css`
+      addFile({filename, content: style})
     }
   }
 
   /**
-   * img assets
+   * img assets (cover removed)
    */
 
   for (let src of Object.keys(imgSrcInfo)) {
     const {contentType, localFile, properties} = imgSrcInfo[src]
-    assets.push({
-      id: localFile.replace(/[\/\.]/g, '-'),
-      href: localFile,
-      mimetype: contentType,
-      properties,
-    })
+    addFile({filename: localFile, properties}) // content will be imgs dir
   }
 
-  /**
-   * cover
-   */
-
-  let cover: any
-  const coverUrl = data.startInfo.bookInfo.cover
-  if (coverUrl) {
-    const {localFile, contentType} = imgSrcInfo[coverUrl]
-    cover = {
-      id: 'cover',
-      href: localFile,
-      mimetype: contentType,
-    }
-  }
-
-  /**
-   * nav
-   */
-
-  const items2 = items.map((item, index) => {
-    return {...item, index: index + 1, level: chapterInfos[index].level as number}
-  })
-
-  type NavItem = {
-    id: string
-    title: string
-    filename: string
-    index: number
-    level: number
-    children?: NavItem[]
-  }
-
-  let maxNavDepth = 1
-
-  const navItems: NavItem[] = []
-  const startLevel = 1
-  for (let i = 0; i < items2.length; i++) {
-    const cur = items2[i]
-    maxNavDepth = Math.max(maxNavDepth, cur.level)
-
-    let arr = navItems
-    _.times(cur.level - 1, () => {
-      const item = _.last(navItems)
-      if (!item.children) item.children = []
-      arr = item.children
-    })
-
-    arr.push(cur)
-  }
-
-  const renderData = {
+  const baseRenderData = {
     bookId,
-    uuid: bookId,
     e: '',
     title: bookInfo.title,
     date: new Date(bookInfo.updateTime * 1000).toISOString().replace(/\.\d+Z$/, 'Z'),
@@ -223,23 +167,50 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     publisher: bookInfo.publisher,
     description: bookInfo.intro,
     category: bookInfo.category,
-    assets,
-    items,
-    navItems,
-    maxNavDepth,
-    cover,
+
+    // cover
+    cover: coverFileItem,
+    coverPage: coverPageFileItem,
   }
 
-  // nav.xhtml
-  const nav = nunjucks.renderString(navTemplate, renderData)
-  archive.append(nav, {name: 'OEBPS/nav.xhtml'})
+  /**
+   * nav
+   */
 
-  // content.opf
-  const opf = nunjucks.renderString(opfTemplate, {...renderData})
-  archive.append(opf, {name: 'OEBPS/content.opf'})
+  // add nav.xhtml first
+  book.navPageFile = new FileItem({filename: 'nav.xhtml', properties: 'nav'}) // 内容手动写入
+  const {navItems, maxNavDepth} = book.getNavInfo()
 
-  const toc = nunjucks.renderString(tocTemplate, renderData)
-  archive.append(toc, {name: 'OEBPS/toc.ncx'})
+  {
+    const renderData = {...baseRenderData, navItems, maxNavDepth}
+
+    const nav = nunjucks.renderString(navTemplate, renderData)
+    archive.append(nav, {name: 'OEBPS/nav.xhtml'}) //
+
+    const toc = nunjucks.renderString(tocTemplate, renderData)
+    addFile({filename: 'toc.ncx', content: toc, id: 'ncx'})
+  }
+
+  const manifest = book.getManifest()
+  const spine = book.getSpine()
+  {
+    // content.opf
+    const renderData = {...baseRenderData, manifest, spine}
+    const opf = nunjucks.renderString(opfTemplate, renderData)
+    archive.append(opf, {name: 'OEBPS/content.opf'})
+  }
+
+  // 添加文件
+  for (let f of manifest) {
+    if (!f.content && !f.filepath) continue
+
+    let content = f.content
+    if (!content) {
+      content = fs.readFileSync(f.filepath)
+    }
+
+    archive.append(content, {name: `OEBPS/${f.filename}`})
+  }
 
   // 添加图片
   archive.directory(path.join(bookDir, 'imgs'), 'OEBPS/imgs')

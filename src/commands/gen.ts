@@ -33,7 +33,7 @@ async function main(url: string) {
     map = {}
   }
 
-  const id = map[url]
+  const {bookId: id} = map[url] || {}
   if (!id) {
     return console.error('can not find id !!!')
   }

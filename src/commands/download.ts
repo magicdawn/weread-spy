@@ -115,7 +115,7 @@ async function main(bookReadUrl: string, justLaunch: boolean) {
   } catch (error) {
     // noop
   }
-  map = {...map, [bookReadUrl]: startInfo.bookId}
+  map = {...map, [bookReadUrl]: {bookId: startInfo.bookId, title: startInfo.bookInfo.title}}
   fse.outputJsonSync(mapFile, map, {spaces: 2})
 
   const changeChapter = async (uid: number) => {

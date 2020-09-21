@@ -11,13 +11,13 @@
 	</docTitle>
 	<navMap>
 		{% for item in navItems %}
-		<navPoint id="navPoint-for-{{item.id}}" playOrder="{{item.index}}">
+		<navPoint id="navPoint-for-{{item.id}}" playOrder="{{item.playOrder}}">
 			<navLabel>
 				<text>{{item.title}}</text>
 			</navLabel>
 			<content src="{{item.filename}}" />
       {% for subitem in item.children %}
-  		<navPoint id="navPoint-for-{{subitem.id}}" playOrder="{{subitem.index}}">
+  		<navPoint id="navPoint-for-{{subitem.id}}" playOrder="{{subitem.playOrder}}">
   			<navLabel>
   				<text>{{subitem.title}}</text>
   			</navLabel>

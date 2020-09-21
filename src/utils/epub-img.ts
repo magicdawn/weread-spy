@@ -9,6 +9,7 @@ import request from './request'
 import {Data, APP_ROOT} from './common'
 import sharp from 'sharp'
 import fse from 'fs-extra'
+import Book from './Book'
 
 const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
@@ -17,10 +18,10 @@ export interface ImgSrcInfo {
   [key: string]: {contentType: string; ext: string; localFile: string; properties?: string}
 }
 
-export default async function getImgSrcInfo(data: Data) {
+export default async function getImgSrcInfo(book: Book) {
   let imgSrcInfo: ImgSrcInfo = {}
 
-  const bookDir = path.join(APP_ROOT, `data/book/${data.startInfo.bookId}/`)
+  const {data, bookDir} = book
   const cacheFile = path.join(bookDir, 'imgs.json')
 
   /**
@@ -91,7 +92,8 @@ export default async function getImgSrcInfo(data: Data) {
   /**
    * cover
    */
-  const coverUrl = data.startInfo.bookInfo.cover
+
+  const coverUrl = book.coverUrl
   if (coverUrl) {
     debug('add cover url = %s', coverUrl)
     imgSrcs.push(coverUrl)

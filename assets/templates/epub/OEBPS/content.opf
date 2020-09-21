@@ -15,34 +15,19 @@
 	</metadata>
 
 	<manifest>
-		{% for item in items -%}
+		{% for item in manifest -%}
 			<item
-        id="{{item.id}}"
-        href="{{item.filename}}"
-        media-type="application/xhtml+xml"
+        id="{{ item.id }}"
+        href="{{ item.filename }}"
+        media-type="{{ item.mimetype }}"
+        {% if item.properties %}properties="{{ item.properties }}"{% endif %}
       />
 		{% endfor %}
-
-    {% for asset in assets -%}
-    <item
-      id="{{asset.id}}"
-      href="{{asset.href}}"
-      media-type="{{asset.mimetype}}"
-      {% if asset.properties %} properties="{{ asset.properties }}"{% endif %}
-    />
-    {% endfor %}
-
-		{% for res in remoteResources %}
-			<item id="{{res.id}}" href="{{res.href}}" media-type="{{res.mimetype}}" />
-		{% endfor %}
-		<item id="nav" href="nav.xhtml" properties="nav" media-type="application/xhtml+xml" />
-		<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
 	</manifest>
 
 	<spine toc="ncx">
-    <itemref idref="nav" />
-		{% for item in items -%}
-			<itemref idref="{{item.id}}" />
+    {% for item in spine -%}
+      <itemref idref="{{ item.id }}" />
 		{% endfor %}
 	</spine>
 
