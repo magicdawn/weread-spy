@@ -16,21 +16,25 @@
 
 	<manifest>
 		{% for item in items -%}
-			<item id="{{item.id}}" href="{{item.filename}}" media-type="application/xhtml+xml" />
+			<item
+        id="{{item.id}}"
+        href="{{item.filename}}"
+        media-type="application/xhtml+xml"
+      />
 		{% endfor %}
+
+    {% for asset in assets -%}
+    <item
+      id="{{asset.id}}"
+      href="{{asset.href}}"
+      media-type="{{asset.mimetype}}"
+      {% if asset.properties %} properties="{{ asset.properties }}"{% endif %}
+    />
+    {% endfor %}
 
 		{% for res in remoteResources %}
 			<item id="{{res.id}}" href="{{res.href}}" media-type="{{res.mimetype}}" />
 		{% endfor %}
-
-		{% for asset in assets -%}
-			<item id="{{asset.id}}" href="{{asset.href}}" media-type="{{asset.mimetype}}" />
-		{% endfor %}
-
-		{% if cover -%}
-			<item id="{{cover.id}}" href="{{cover.href}}" media-type="{{cover.mimetype}}" />
-		{% endif %}
-
 		<item id="nav" href="nav.xhtml" properties="nav" media-type="application/xhtml+xml" />
 		<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
 	</manifest>

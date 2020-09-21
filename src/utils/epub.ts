@@ -75,7 +75,7 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   //   href: 'style.css',
   //   mimetype: 'text/css',
   // },
-  const assets: Array<{id: string; href: string; mimetype: string}> = []
+  const assets: Array<{id: string; href: string; mimetype: string; properties?: string}> = []
 
   //     id: `chapter-${chapterUid}-xhtml`,
   //     title,
@@ -151,13 +151,30 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   /**
    * img assets
    */
+
   for (let src of Object.keys(imgSrcInfo)) {
-    const {contentType, localFile} = imgSrcInfo[src]
+    const {contentType, localFile, properties} = imgSrcInfo[src]
     assets.push({
       id: localFile.replace(/[\/\.]/g, '-'),
       href: localFile,
       mimetype: contentType,
+      properties,
     })
+  }
+
+  /**
+   * cover
+   */
+
+  let cover: any
+  const coverUrl = data.startInfo.bookInfo.cover
+  if (coverUrl) {
+    const {localFile, contentType} = imgSrcInfo[coverUrl]
+    cover = {
+      id: 'cover',
+      href: localFile,
+      mimetype: contentType,
+    }
   }
 
   /**
@@ -210,6 +227,7 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
     items,
     navItems,
     maxNavDepth,
+    cover,
   }
 
   // nav.xhtml

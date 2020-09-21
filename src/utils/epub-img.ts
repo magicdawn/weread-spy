@@ -14,7 +14,7 @@ const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
 export interface ImgSrcInfo {
-  [key: string]: {contentType: string; ext: string; localFile: string}
+  [key: string]: {contentType: string; ext: string; localFile: string; properties?: string}
 }
 
 export default async function getImgSrcInfo(data: Data) {
@@ -87,6 +87,21 @@ export default async function getImgSrcInfo(data: Data) {
       localFile,
     }
   })
+
+  /**
+   * cover
+   */
+  const coverUrl = data.startInfo.bookInfo.cover
+  if (coverUrl) {
+    debug('add cover url = %s', coverUrl)
+    imgSrcs.push(coverUrl)
+    imgSrcInfo[coverUrl] = {
+      contentType: '',
+      ext: '',
+      localFile: 'imgs/cover', // ext will be add later
+      properties: 'cover-image',
+    }
+  }
 
   await pmap(
     imgSrcs,
