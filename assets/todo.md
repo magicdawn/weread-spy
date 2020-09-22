@@ -2,7 +2,7 @@
 
 ### @
 
-- [ ] background-image support
+- [x] background-image support
 
 ### code style
 
