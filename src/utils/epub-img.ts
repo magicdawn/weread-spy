@@ -18,17 +18,23 @@ export interface ImgSrcInfo {
   [key: string]: {contentType: string; ext: string; localFile: string; properties?: string}
 }
 
-export default async function getImgSrcInfo(book: Book) {
+export default async function getImgSrcInfo(book: Book, clean: boolean) {
   let imgSrcInfo: ImgSrcInfo = {}
 
   const {data, bookDir} = book
   const cacheFile = path.join(bookDir, 'imgs.json')
 
-  /**
-   * use cache
-   */
+  if (clean) {
+    debug('cleaning: remove imgs.json %s', cacheFile)
+    await fse.remove(cacheFile)
 
-  if (await fse.pathExists(cacheFile)) {
+    const imgsDir = path.join(bookDir, 'imgs')
+    debug('cleaning: remove imgs dir %s', imgsDir)
+    await fse.remove(imgsDir)
+  } else if (await fse.pathExists(cacheFile)) {
+    /**
+     * use cache
+     */
     imgSrcInfo = await fse.readJsonSync(cacheFile)
     if (Object.keys(imgSrcInfo).length) {
       return imgSrcInfo

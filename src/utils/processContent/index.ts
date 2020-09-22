@@ -15,6 +15,8 @@ interface ProcessContentOptions {
   imgSrcInfo: ImgSrcInfo
 }
 
+const DATA_ATTR_WHITELIST = ['data-src', 'data-bg-img']
+
 export default function processContent(info: Info, options: ProcessContentOptions) {
   const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
   const {cssFilenames, imgSrcInfo} = options
@@ -153,7 +155,7 @@ function removeDataAttr(el: CheerioElement, $: CheerioStatic): OnNodeResult {
   const $el = $(el)
   Object.keys(el.attribs || {})
     .filter((k) => {
-      return k.startsWith('data-') && !['data-src'].includes(k)
+      return k.startsWith('data-') && !DATA_ATTR_WHITELIST.includes(k)
     })
     .forEach((attr) => {
       $el.removeAttr(attr)
@@ -220,6 +222,17 @@ function collectImgSrc(el: CheerioElement, $: CheerioStatic, ctx: any): OnNodeRe
     const src = $(el).data('src')
     ;(ctx as string[]).push(src)
   }
+
+  // style="background-image:url(https://res.weread.qq.com/wrepub/web/910419/copyright.jpg);"
+  const style = el.attribs?.style
+  if (style?.includes('background-image:')) {
+    const m = /(?:^|; *?)background-image *?: *?url\(([\S]+?)\)/.exec(style)
+    if (m?.[1]) {
+      const src = m[1]
+      $(el).attr('data-bg-img', src) // mark, has no effect, the result html will be abondoned
+      ;(ctx as string[]).push(src)
+    }
+  }
 }
 
 function fixImgSrc(el: CheerioElement, $: CheerioStatic, ctx: any): OnNodeResult {
@@ -239,5 +252,27 @@ function fixImgSrc(el: CheerioElement, $: CheerioStatic, ctx: any): OnNodeResult
 
     // change src
     $el.attr('src', newSrc)
+    return
+  }
+
+  // style="background-image:url(https://res.weread.qq.com/wrepub/web/910419/copyright.jpg);"
+  const style = el.attribs?.style
+  if (style?.includes('background-image:')) {
+    const m = /(?:^|; *?)background-image *?: *?url\(([\S]+?)\)/.exec(style)
+    if (m?.[1]) {
+      const $el = $(el)
+      const src = m[1]
+
+      // transform
+      const newSrc = ctx.transformImgSrc(src)
+      ctx.imgs.push({
+        src,
+        newSrc,
+      })
+
+      // replace style
+      const newStyle = style.replace(src, newSrc)
+      $el.attr('style', newStyle)
+    }
   }
 }

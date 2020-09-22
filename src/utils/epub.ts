@@ -21,13 +21,14 @@ import debugFactory from 'debug'
 import {Data, APP_ROOT} from './common'
 import getImgSrcInfo from './epub-img'
 import {createWorker, createWorkers} from './processContent/index.main'
+import processContent from './processContent'
 import mapOnWorker from './mapOnWorker'
 import {FileItem, FileItemFields} from './EpubModel'
 import Book from './Book'
 
 const debug = debugFactory('weread-spy:utils:epub')
 
-export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
+export async function gen({epubFile, data, clean}: {epubFile: string; data: Data; clean: boolean}) {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
   const template_base = path.join(APP_ROOT, 'assets/templates/epub/')
 
@@ -77,8 +78,8 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   // 章节 html
   const {chapterInfos, bookInfo, bookId} = data.startInfo
 
-  // 图片信息
-  const imgSrcInfo = await getImgSrcInfo(book)
+  // 图片
+  const imgSrcInfo = await getImgSrcInfo(book, clean)
 
   /**
    * cover
@@ -129,6 +130,25 @@ export async function gen({epubFile, data}: {epubFile: string; data: Data}) {
   )
   debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
   workers.forEach((w) => w.nodeWorker.unref())
+
+  //
+  // processContent in this thread
+  //
+  // const processContentStart = performance.now()
+  // const processResults = await pmap(
+  //   chapterInfos,
+  //   async (chapterInfo, i, arr) => {
+  //     const c = chapterInfos[i]
+  //     const {chapterUid} = c
+  //     const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
+  //     return processContent(data.infos[i], {
+  //       cssFilenames,
+  //       imgSrcInfo,
+  //     })
+  //   },
+  //   5
+  // )
+  // debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
@@ -230,11 +250,12 @@ function getInfo(id: string) {
   return {data, file}
 }
 
-export async function genEpubFor(id: string) {
+export async function genEpubFor(id: string, clean: boolean) {
   const {data, file} = getInfo(id)
   await gen({
     epubFile: file,
     data,
+    clean,
   })
 }
 
