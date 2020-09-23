@@ -10,6 +10,7 @@
 
 import path from 'path'
 import {performance} from 'perf_hooks'
+import {pipeline} from 'stream'
 import fs from 'fs-extra'
 import _ from 'lodash'
 import nunjucks from 'nunjucks'
@@ -35,38 +36,11 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
   const book = new Book(data)
   const {bookDir, addFile, addTextFile} = book
 
-  const output = fs.createWriteStream(epubFile)
-  const archive = archiver('zip', {
-    store: true,
-  })
-
-  const p = new Promise((resolve, reject) => {
-    output
-      .on('close', () => {
-        console.log(archive.pointer() + ' total bytes')
-        console.log('archiver has been finalized and the output file descriptor has closed.')
-        resolve()
-      })
-      .on('end', () => {
-        console.log('Data has been drained')
-      })
-
-    archive
-      .on('warning', (err) => {
-        throw err
-      })
-      .on('error', (err) => {
-        throw err
-        reject(err)
-      })
-      .pipe(output)
-  })
-
   // mimetype file must be first
-  archive.append('application/epub+zip', {name: 'mimetype'})
+  book.addZipFile('mimetype', 'application/epub+zip', {compression: 'STORE'})
 
   // static files from META-INF
-  archive.directory(path.join(template_base, 'META-INF'), 'META-INF')
+  await book.addZipFolder('META-INF', path.join(template_base, 'META-INF'))
 
   const [navTemplate, tocTemplate, opfTemplate, coverTemplate] = await Promise.all([
     fs.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
@@ -205,7 +179,7 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
     const renderData = {...baseRenderData, navItems, maxNavDepth}
 
     const nav = nunjucks.renderString(navTemplate, renderData)
-    archive.append(nav, {name: 'OEBPS/nav.xhtml'}) //
+    book.addZipFile('OEBPS/nav.xhtml', nav)
 
     const toc = nunjucks.renderString(tocTemplate, renderData)
     addFile({filename: 'toc.ncx', content: toc, id: 'ncx'})
@@ -217,7 +191,7 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
     // content.opf
     const renderData = {...baseRenderData, manifest, spine}
     const opf = nunjucks.renderString(opfTemplate, renderData)
-    archive.append(opf, {name: 'OEBPS/content.opf'})
+    book.addZipFile('OEBPS/content.opf', opf)
   }
 
   // 添加文件
@@ -229,14 +203,23 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
       content = fs.readFileSync(f.filepath)
     }
 
-    archive.append(content, {name: `OEBPS/${f.filename}`})
+    book.addZipFile(`OEBPS/${f.filename}`, content)
   }
 
   // 添加图片
-  archive.directory(path.join(bookDir, 'imgs'), 'OEBPS/imgs')
+  await book.addZipFolder('OEBPS/imgs', path.join(bookDir, 'imgs'))
 
-  archive.finalize()
-  return p
+  const stream = book.zip.generateNodeStream({streamFiles: true, compression: 'DEFLATE'})
+  const output = fs.createWriteStream(epubFile)
+  return new Promise((resolve, reject) => {
+    pipeline(stream, output, (err) => {
+      if (err) {
+        return reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
 }
 
 function getInfo(id: string) {

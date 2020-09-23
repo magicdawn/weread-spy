@@ -1,7 +1,11 @@
 import path from 'path'
-import _ from 'lodash'
+import _, {trimStart, trimEnd} from 'lodash'
+import JSZip, {InputType, JSZipFileOptions} from 'jszip'
+import fse from 'fs-extra'
 import {Data, APP_ROOT} from './common'
 import {FileItem, FileItemFields} from './EpubModel'
+import globby from 'globby'
+import pmap from 'promise.map'
 
 export type NavItem = {
   id: string
@@ -9,6 +13,18 @@ export type NavItem = {
   title: string
   playOrder: number
   children?: NavItem[]
+}
+
+interface InputByType {
+  base64: string
+  string: string
+  text: string
+  binarystring: string
+  array: number[]
+  uint8array: Uint8Array
+  arraybuffer: ArrayBuffer
+  blob: Blob
+  stream: NodeJS.ReadableStream
 }
 
 export default class Book {
@@ -132,5 +148,30 @@ export default class Book {
     })
 
     return {navItems, maxNavDepth}
+  }
+
+  /**
+   * zip related
+   */
+
+  zip: JSZip = new JSZip()
+  zipFolders: [string, string][] = []
+
+  // add file
+  addZipFile<T extends InputType>(
+    path: string,
+    content: InputByType[T],
+    options?: JSZipFileOptions
+  ) {
+    this.zip.file(path, content, options)
+  }
+
+  // add folder
+  async addZipFolder(name: string, localFolder: string) {
+    const files = await globby('**/*.*', {cwd: localFolder})
+    const content = files.map((f) => fse.createReadStream(path.join(localFolder, f)))
+    files.forEach((f, index) => {
+      this.addZipFile(trimEnd(name, '/') + '/' + f, content[index])
+    })
   }
 }

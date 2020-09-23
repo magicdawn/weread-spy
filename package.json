@@ -18,6 +18,8 @@
     "execa": "^4.0.3",
     "filenamify": "^4.1.0",
     "fs-extra": "^9.0.1",
+    "globby": "^10.0.2",
+    "jszip": "^3.5.0",
     "mime": "^2.4.6",
     "mimetype": "^0.0.8",
     "moment": "^2.28.0",
