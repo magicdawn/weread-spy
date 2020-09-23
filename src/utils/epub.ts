@@ -195,11 +195,15 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
 
   // 添加文件
   for (let f of manifest) {
-    if (!f.content && !f.filepath) continue
+    let content: string | Buffer
 
-    let content = f.content
-    if (!content) {
+    // f.content = '' 也需要写入
+    if (typeof f.content !== 'undefined' && f.content !== null) {
+      content = f.content
+    } else if (f.filepath) {
       content = fs.readFileSync(f.filepath)
+    } else {
+      continue
     }
 
     book.addZipFile(`OEBPS/${f.filename}`, content)
