@@ -207,7 +207,11 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
   // 添加图片
   await book.addZipFolder('OEBPS/imgs', path.join(bookDir, 'imgs'))
 
-  const stream = book.zip.generateNodeStream({streamFiles: true, compression: 'DEFLATE'})
+  const stream = book.zip.generateNodeStream({
+    streamFiles: true,
+    compression: 'DEFLATE',
+    compressionOptions: {level: 9},
+  })
   const output = fs.createWriteStream(epubFile)
   return new Promise((resolve, reject) => {
     pipeline(stream, output, (err) => {
