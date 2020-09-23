@@ -3,9 +3,8 @@ import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
 import processContent from '../utils/processContent/index'
-
-const APP_ROOT = path.join(__dirname, '../../')
-const userDataDir = path.join(APP_ROOT, 'data/pptr')
+import {APP_ROOT} from '../utils/common'
+import {getBrowser} from '../utils/pptr'
 
 const downloadCommand: CommandModule = {
   command: 'download',
@@ -38,30 +37,7 @@ const downloadCommand: CommandModule = {
 export default downloadCommand
 
 async function main(bookReadUrl: string, justLaunch: boolean) {
-  const browser = await pptr.launch({
-    headless: false,
-    devtools: false,
-    userDataDir,
-    defaultViewport: null,
-  })
-  const page = await browser.newPage()
-  await page.goto('https://weread.qq.com/')
-
-  const loginBtn = '.navBar_link_Login'
-  const logined = await page.$$eval(loginBtn, (els) => els.length === 0)
-  if (!logined) {
-    // 点击登录
-    await page.click(loginBtn)
-
-    // 扫码
-
-    // 等待登录成功
-    await page.waitForSelector('.wr_avatar.navBar_avatar')
-    console.log('登录完成')
-  }
-
-  const ua = await browser.userAgent()
-  console.log('ua = %s', ua)
+  const {browser, page} = await getBrowser()
 
   // 只是启动浏览器
   if (justLaunch) {

@@ -24,6 +24,7 @@ import processContent from './processContent'
 import mapOnWorker from './mapOnWorker'
 import {FileItem} from './EpubModel'
 import Book from './Book'
+import epubcheck from './epubcheck'
 
 const debug = debugFactory('weread-spy:utils:epub')
 
@@ -245,14 +246,6 @@ export async function genEpubFor(id: string, clean: boolean) {
 }
 
 export async function checkEpub(id: string) {
-  const {data, file} = getInfo(id)
-  const epubcheckJar = path.join(APP_ROOT, 'assets/epubcheck.jar')
-
-  const cmd = `java -jar ${epubcheckJar} '${file}'`
-  console.log('[exec]: %s', cmd)
-  try {
-    execa.commandSync(cmd, {stdio: 'inherit', shell: true})
-  } catch (error) {
-    // ignore
-  }
+  const {file} = getInfo(id)
+  epubcheck(file)
 }

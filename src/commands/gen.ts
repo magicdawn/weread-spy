@@ -7,7 +7,7 @@ import {APP_ROOT} from '../utils/common'
 
 const userDataDir = path.join(APP_ROOT, 'data/pptr')
 
-const downloadCommand: CommandModule = {
+const command: CommandModule = {
   command: 'gen-epub',
   describe: 'gen ePub file',
   aliases: ['gen'],
@@ -31,7 +31,7 @@ const downloadCommand: CommandModule = {
     main({url, clean})
   },
 }
-export default downloadCommand
+export default command
 
 async function main({url, clean}: {url: string; clean: boolean}) {
   let map: any

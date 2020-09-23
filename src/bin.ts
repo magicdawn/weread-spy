@@ -4,6 +4,8 @@ import yargs from 'yargs'
 import debugFactory from 'debug'
 import downloadCommand from './commands/download'
 import genEpubCommand from './commands/gen'
+import launchCommand from './commands/launch'
+import checkCommand from './commands/check'
 
 // enable logs
 if (!process.env.DEBUG) {
@@ -11,8 +13,9 @@ if (!process.env.DEBUG) {
 }
 
 yargs
-  //
   .command(downloadCommand)
   .command(genEpubCommand)
+  .command(launchCommand)
+  .command(checkCommand)
   .demandCommand()
   .help().argv

@@ -27,3 +27,7 @@ weread-spy gen -u https://weread.qq.com/web/reader/41432f705de453414ca0b4akc8132
 
 weread-spy gen -c -u https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180
 ```
+
+```
+cat ./data/url.txt | xargs -t -I url sh -c "weread-spy dl -u url && weread-spy gen -u url"
+```
