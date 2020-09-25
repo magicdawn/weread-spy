@@ -5,8 +5,6 @@ import path from 'path'
 import {genEpubFor, checkEpub} from '../utils/epub'
 import {APP_ROOT} from '../utils/common'
 
-const userDataDir = path.join(APP_ROOT, 'data/pptr')
-
 const command: CommandModule = {
   command: 'gen-epub',
   describe: 'gen ePub file',

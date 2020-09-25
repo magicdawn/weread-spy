@@ -1,8 +1,6 @@
 import {CommandModule} from 'yargs'
-import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
-import processContent from '../utils/processContent/index'
 import {APP_ROOT} from '../utils/common'
 import {getBrowser} from '../utils/pptr'
 

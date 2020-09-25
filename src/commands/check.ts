@@ -1,5 +1,4 @@
 import {CommandModule} from 'yargs'
-import {getBrowser} from '../utils/pptr'
 import epubcheck from '../utils/epubcheck'
 import globby from 'globby'
 
