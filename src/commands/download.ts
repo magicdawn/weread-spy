@@ -1,8 +1,9 @@
-import {CommandModule} from 'yargs'
+import {CommandModule, option} from 'yargs'
 import fse from 'fs-extra'
 import path from 'path'
 import {APP_ROOT} from '../utils/common'
 import {getBrowser} from '../utils/pptr'
+import pptr from 'puppeteer'
 
 const downloadCommand: CommandModule = {
   command: 'download',
@@ -34,8 +35,18 @@ const downloadCommand: CommandModule = {
 }
 export default downloadCommand
 
-async function main(bookReadUrl: string, justLaunch: boolean) {
-  const {browser, page} = await getBrowser()
+export async function main(
+  bookReadUrl: string,
+  justLaunch: boolean = false,
+  options?: {page: pptr.Page; browser: pptr.Browser}
+) {
+  let browser: pptr.Browser
+  let page: pptr.Page
+  if (options.page && options.browser) {
+    ;({browser, page} = options)
+  } else {
+    ;({browser, page} = await getBrowser())
+  }
 
   // 只是启动浏览器
   if (justLaunch) {

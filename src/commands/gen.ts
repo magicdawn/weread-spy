@@ -31,7 +31,7 @@ const command: CommandModule = {
 }
 export default command
 
-async function main({url, clean}: {url: string; clean: boolean}) {
+export async function main({url, clean}: {url: string; clean: boolean}) {
   let map: any
   try {
     map = await fse.readJsonSync(path.join(APP_ROOT, 'data/book/map.json'))

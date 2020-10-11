@@ -88,3 +88,11 @@ cat ./data/url.txt | xargs -t -I url sh -c "weread-spy dl -u url && weread-spy g
   }
 }
 ```
+
+## book cover url
+
+挺经
+https://weread.qq.com/web/reader/f95326905c14a3f9545d74ekc4c329b011c4ca4238a0201
+
+家书
+https://weread.qq.com/web/reader/566323505c7013566201ddckc81322c012c81e728d9d180

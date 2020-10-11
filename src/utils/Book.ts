@@ -5,7 +5,6 @@ import fse from 'fs-extra'
 import {Data, APP_ROOT} from './common'
 import {FileItem, FileItemFields} from './EpubModel'
 import globby from 'globby'
-import pmap from 'promise.map'
 
 export type NavItem = {
   id: string

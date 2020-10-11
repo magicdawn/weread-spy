@@ -1,1 +1,3 @@
-module.exports = require('@magicdawn/prettier-config')
+module.exports = {
+  ...require('@magicdawn/prettier-config'),
+}

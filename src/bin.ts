@@ -6,6 +6,7 @@ import downloadCommand from './commands/download'
 import genEpubCommand from './commands/gen'
 import launchCommand from './commands/launch'
 import checkCommand from './commands/check'
+import oneCommand from './commands/one'
 
 // enable logs
 if (!process.env.DEBUG) {
@@ -17,5 +18,6 @@ yargs
   .command(genEpubCommand)
   .command(launchCommand)
   .command(checkCommand)
+  .command(oneCommand)
   .demandCommand()
   .help().argv
