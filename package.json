@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "author": "magicdawn",
   "bin": {
-    "weread-spy": "bin/weread-spy.js"
+    "weread-spy": "bin/weread-spy.js",
+    "weread-spy-dev": "bin/weread-spy-dev.js"
   },
   "bugs": {
     "url": "https://github.com/magicdawn/weread-spy/issues"
