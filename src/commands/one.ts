@@ -5,7 +5,6 @@ import URI from 'urijs'
 import pptr from 'puppeteer'
 import {main as download} from './download'
 import {main as gen} from './gen'
-import {stat} from 'fs-extra'
 
 const EXAMPLE_SHELF_BOOK = {
   bookId: '815123',
