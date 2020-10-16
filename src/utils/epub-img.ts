@@ -5,8 +5,6 @@ import {getImgSrcs} from './processContent'
 import pmap from 'promise.map'
 import mime from 'mime'
 import dl from 'dl-vampire'
-import request from './request'
-import {Data, APP_ROOT} from './common'
 import sharp from 'sharp'
 import fse from 'fs-extra'
 import Book from './Book'
@@ -46,7 +44,6 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
   // imgSrcs
   let imgSrcs: string[] = []
   for (let i = 0; i < chapterInfos.length; i++) {
-    const c = chapterInfos[i]
     const curSrcs = getImgSrcs(data.infos[i].chapterContentHtml)
     imgSrcs = imgSrcs.concat(curSrcs)
   }
@@ -55,10 +52,10 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
    * img 去重
    */
 
-  let imgSrcSet = new Set()
+  const imgSrcSet = new Set()
   const originalImgSrcs = [...imgSrcs]
   imgSrcs = []
-  for (let src of originalImgSrcs) {
+  for (const src of originalImgSrcs) {
     if (imgSrcSet.has(src)) {
       continue
     } else {

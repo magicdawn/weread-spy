@@ -1,8 +1,11 @@
 # root
 root: true
 
+parser: '@typescript-eslint/parser'
+
+plugins:
+  - '@typescript-eslint'
+
 extends:
   - '@magicdawn'
-
-parserOptions:
-  sourceType: module
+  - 'plugin:@typescript-eslint/recommended'
