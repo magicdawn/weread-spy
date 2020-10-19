@@ -1,5 +1,4 @@
 import {CommandModule} from 'yargs'
-import pptr from 'puppeteer'
 import fse from 'fs-extra'
 import path from 'path'
 import {genEpubFor, checkEpub} from '../utils/epub'
