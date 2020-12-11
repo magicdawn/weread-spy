@@ -1,15 +1,19 @@
-import {CommandModule} from 'yargs'
 import epubcheck from '../utils/epubcheck'
 import globby from 'globby'
+import {Command} from 'clipanion'
 
-const command: CommandModule = {
-  command: 'check',
-  describe: 'check the epub file',
-  builder(yargs) {
-    return yargs
-  },
-  async handler(argv) {
-    const files = argv._.slice(1) // [0] = check
+export default class CheckCommand extends Command {
+  static usage = Command.Usage({
+    description: `检查 epub 文件是否符合规范`,
+  })
+
+  @Command.Rest({required: 1})
+  files: string[]
+
+  @Command.Path('c')
+  @Command.Path('check')
+  async execute() {
+    const files = this.files
 
     for (let f of files) {
       const pattern = f.includes('*')
@@ -18,12 +22,9 @@ const command: CommandModule = {
         subfiles.forEach((f) => epubcheck(f))
         continue
       }
-
       if (f) {
         epubcheck(f)
       }
     }
-  },
+  }
 }
-
-export default command

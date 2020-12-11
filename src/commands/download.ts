@@ -1,44 +1,41 @@
-import {CommandModule, option} from 'yargs'
 import fse from 'fs-extra'
 import path from 'path'
 import {APP_ROOT} from '../utils/common'
 import {getBrowser} from '../utils/pptr'
 import pptr from 'puppeteer'
+import {Command} from 'clipanion'
 
-const downloadCommand: CommandModule = {
-  command: 'download',
-  describe: 'download a book',
-  aliases: ['dl'],
-  builder(yargs) {
-    return yargs
-      .option('url', {
-        alias: 'u',
-        desc: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
-        required: false,
-      })
-      .option('just-launch', {
-        type: 'boolean',
-        default: false,
-      })
-  },
-  handler(argv) {
-    console.log(argv)
-    const url = argv.url as string
-    const justLaunch = argv.justLaunch as boolean
+export default class DownloadCommand extends Command {
+  static usage = Command.Usage({
+    description: `下载 epub`,
+  })
+
+  @Command.String('-u,--url', {
+    description: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
+  })
+  url: string
+
+  @Command.Boolean('--just-launch', {})
+  justLaunch: boolean
+
+  @Command.Path('dl')
+  @Command.Path('download')
+  async execute() {
+    const url = this.url
+    const justLaunch = this.justLaunch
 
     if (!justLaunch && !url) {
       return console.error('url is required')
     }
 
     main(url, justLaunch)
-  },
+  }
 }
-export default downloadCommand
 
 export async function main(
   bookReadUrl: string,
   justLaunch: boolean = false,
-  options?: {page: pptr.Page; browser: pptr.Browser}
+  options: {page?: pptr.Page; browser?: pptr.Browser} = {}
 ) {
   let browser: pptr.Browser
   let page: pptr.Page

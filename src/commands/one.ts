@@ -1,10 +1,10 @@
-import {CommandModule} from 'yargs'
-import {getBrowser} from '../utils/pptr'
 import inquirer from 'inquirer'
 import URI from 'urijs'
 import pptr from 'puppeteer'
+import {Command} from 'clipanion'
 import {main as download} from './download'
 import {main as gen} from './gen'
+import {getBrowser} from '../utils/pptr'
 
 const EXAMPLE_SHELF_BOOK = {
   bookId: '815123',
@@ -25,13 +25,13 @@ const EXAMPLE_SHELF_BOOK = {
 }
 type ShelfBook = typeof EXAMPLE_SHELF_BOOK
 
-const command: CommandModule = {
-  command: 'one',
-  describe: 'one station operation',
-  builder(yargs) {
-    return yargs
-  },
-  async handler(argv) {
+export default class extends Command {
+  static usage = Command.Usage({
+    description: 'one station operation',
+  })
+
+  @Command.Path('one')
+  async execute() {
     const {browser, page} = await getBrowser()
 
     // 使用 browser goto book readUrl
@@ -75,10 +75,8 @@ const command: CommandModule = {
     }
 
     page.on('framenavigated', handler)
-  },
+  }
 }
-
-export default command
 
 async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
   const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {

@@ -13,6 +13,7 @@
   "dependencies": {
     "archiver": "^5.0.2",
     "cheerio": "^1.0.0-rc.3",
+    "clipanion": "^2.6.2",
     "comlink": "^4.3.0",
     "debug": "^4.2.0",
     "dl-vampire": "^0.5.0",
@@ -46,7 +47,9 @@
     "@types/cheerio": "^0.22.22",
     "@types/debug": "^4.1.5",
     "@types/fs-extra": "^9.0.1",
+    "@types/gulp": "^4.0.7",
     "@types/inquirer": "^7.3.1",
+    "@types/jake": "^0.0.32",
     "@types/lodash": "^4.14.161",
     "@types/mime": "^2.0.3",
     "@types/mocha": "^5",
@@ -64,7 +67,9 @@
     "chai": "^4",
     "codecov": "^3.3.0",
     "eslint": "^7.11.0",
+    "gulp": "^4.0.2",
     "husky": "^4",
+    "just-scripts": "^1.2.6",
     "lint-staged": "^10",
     "mocha": "^6.1.4",
     "nyc": "^14.0.0",
@@ -97,6 +102,8 @@
     "url": "git+ssh://git@github.com/magicdawn/weread-spy.git"
   },
   "scripts": {
+    "dev": "tsc -w --incremental",
+    "build": "rm -rf lib; rm tsconfig.tsbuildinfo; tsc",
     "gen-readme": "swig render ./readme/readme.md > README.md && prettier --write README.md",
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "report-cover": "codecov",

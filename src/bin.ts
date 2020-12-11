@@ -1,23 +1,39 @@
 #!/usr/bin/env ts-node-script
 
-import yargs from 'yargs'
 import debugFactory from 'debug'
-import downloadCommand from './commands/download'
-import genEpubCommand from './commands/gen'
-import launchCommand from './commands/launch'
-import checkCommand from './commands/check'
-import oneCommand from './commands/one'
+import {Cli, Command} from 'clipanion'
+
+import GenEpubCommand from './commands/gen'
+import LaunchCommand from './commands/launch'
+import CheckCommand from './commands/check'
+import DownloadCommand from './commands/download'
+import OneCommand from './commands/one'
 
 // enable logs
 if (!process.env.DEBUG) {
   debugFactory.enable('weread-spy:*')
 }
 
-yargs
-  .command(downloadCommand)
-  .command(genEpubCommand)
-  .command(launchCommand)
-  .command(checkCommand)
-  .command(oneCommand)
-  .demandCommand()
-  .help().argv
+// @ts-ignore
+const {version} = require('../package.json')
+
+const cli = new Cli({
+  binaryLabel: 'Weread Spy',
+  binaryName: 'weread-spy',
+  binaryVersion: version,
+})
+
+// default commands
+cli.register(Command.Entries.Help)
+cli.register(Command.Entries.Version)
+
+// commands
+cli.register(DownloadCommand)
+cli.register(GenEpubCommand)
+cli.register(LaunchCommand)
+cli.register(CheckCommand)
+cli.register(OneCommand)
+
+cli.runExit(process.argv.slice(2), {
+  ...Cli.defaultContext,
+})
