@@ -1,9 +1,9 @@
 import fse from 'fs-extra'
 import path from 'path'
-import {APP_ROOT} from '../utils/common'
-import {getBrowser} from '../utils/pptr'
 import pptr from 'puppeteer'
 import {Command} from 'clipanion'
+import {APP_ROOT} from '../utils/common'
+import {getBrowser} from '../utils/pptr'
 
 export default class DownloadCommand extends Command {
   static usage = Command.Usage({

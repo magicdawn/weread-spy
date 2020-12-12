@@ -17,11 +17,6 @@ task('default', () => {
 })
 
 namespace('build', () => {
-  desc('build ui')
-  task('ui', () => {
-    console.log('build:ui')
-  })
-
   desc('build executable via pkg')
   task('pkg', () => {
     exec('pkg -t node12-mac --out-path dist .')

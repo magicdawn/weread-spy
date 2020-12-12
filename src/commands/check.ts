@@ -1,6 +1,6 @@
-import epubcheck from '../utils/epubcheck'
 import globby from 'globby'
 import {Command} from 'clipanion'
+import epubcheck from '../utils/epubcheck'
 
 export default class CheckCommand extends Command {
   static usage = Command.Usage({

@@ -1,8 +1,8 @@
 import fse from 'fs-extra'
 import path from 'path'
+import {Command} from 'clipanion'
 import {genEpubFor, checkEpub} from '../utils/epub'
 import {APP_ROOT} from '../utils/common'
-import {Command} from 'clipanion'
 
 export default class extends Command {
   static usage = Command.Usage({

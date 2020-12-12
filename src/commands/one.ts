@@ -37,7 +37,7 @@ export default class extends Command {
     // 使用 browser goto book readUrl
     let prompt: any
 
-    const handler = async (e) => {
+    const handler = async (e: pptr.Frame) => {
       const pageUrl = e.url()
       const uri = URI(pageUrl)
       const path = uri.pathname()
