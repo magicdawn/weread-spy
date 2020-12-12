@@ -17,7 +17,7 @@ import nunjucks from 'nunjucks'
 import filenamify from 'filenamify'
 import execa from 'execa'
 import debugFactory from 'debug'
-import {Data, APP_ROOT} from './common'
+import {Data, APP_ROOT, PROJECT_ROOT} from './common'
 import getImgSrcInfo from './epub-img'
 import {createWorkers} from './processContent/index.main'
 import processContent from './processContent'
@@ -30,7 +30,7 @@ const debug = debugFactory('weread-spy:utils:epub')
 
 export async function gen({epubFile, data, clean}: {epubFile: string; data: Data; clean: boolean}) {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
-  const template_base = path.join(APP_ROOT, 'assets/templates/epub/')
+  const template_base = path.join(PROJECT_ROOT, 'assets/templates/epub/')
 
   const book = new Book(data)
   const {bookDir, addFile, addTextFile} = book

@@ -1,8 +1,12 @@
 import pptr from 'puppeteer'
 import path from 'path'
-import {APP_ROOT} from './common'
+import envPaths from 'env-paths'
+import {isPkg, execDir, PROJECT_ROOT} from './common'
 
-const userDataDir = path.join(APP_ROOT, 'data/pptr')
+const appCacheDir = envPaths('weread-spy', {suffix: ''}).cache
+const userDataDir = isPkg
+  ? path.join(appCacheDir, 'pptr-data')
+  : path.join(PROJECT_ROOT, 'data/pptr-data')
 
 export async function getBrowser() {
   const browser = await pptr.launch({
@@ -10,6 +14,9 @@ export async function getBrowser() {
     devtools: false,
     userDataDir,
     defaultViewport: null,
+    executablePath: isPkg
+      ? path.join(execDir, 'puppeteer/mac-800071/chrome-mac/Chromium.app/Contents/MacOS/Chromium')
+      : undefined,
   })
   const page = await browser.newPage()
   await page.goto('https://weread.qq.com/')
@@ -23,7 +30,9 @@ export async function getBrowser() {
     // 扫码
 
     // 等待登录成功
-    await page.waitForSelector('.wr_avatar.navBar_avatar')
+    await page.waitForSelector('.wr_avatar.navBar_avatar', {
+      timeout: 0,
+    })
     console.log('登录完成')
   }
 

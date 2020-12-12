@@ -10,4 +10,12 @@ export interface Data {
   infos: Info[]
 }
 
-export const APP_ROOT = path.join(__dirname, '../../')
+// see https://github.com/vercel/pkg#snapshot-filesystem
+export const isPkg = Boolean((process as any).pkg)
+export const execDir = path.dirname(process.execPath)
+
+export const PROJECT_ROOT = path.join(__dirname, '../../')
+
+export const APP_ROOT = isPkg
+  ? execDir // use exec currentDir
+  : PROJECT_ROOT // use projectDir

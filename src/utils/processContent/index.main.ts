@@ -7,6 +7,7 @@ import type processContent from './index'
 type ProcessContent = typeof processContent
 
 /**
+ * 如果使用 ts-node
  * 开发使用 __dirname + /processContent.worker.js
  * 内容是 require ts-node/register + require processContent.worker.ts
  *
