@@ -19,6 +19,15 @@ export async function getBrowser() {
       : undefined,
     ignoreDefaultArgs: ['--enable-automation'],
   })
+
+  // close existing page
+  {
+    const pages = await browser.pages()
+    process.nextTick(() => {
+      pages.forEach((p) => p.close())
+    })
+  }
+
   const page = await browser.newPage()
   await page.goto('https://weread.qq.com/')
 
