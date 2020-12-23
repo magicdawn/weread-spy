@@ -17,6 +17,7 @@ export async function getBrowser() {
     executablePath: isPkg
       ? path.join(execDir, 'puppeteer/mac-800071/chrome-mac/Chromium.app/Contents/MacOS/Chromium')
       : undefined,
+    ignoreDefaultArgs: ['--enable-automation'],
   })
   const page = await browser.newPage()
   await page.goto('https://weread.qq.com/')
