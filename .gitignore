@@ -17,3 +17,13 @@ npm-debug.log*
 yarn.lock
 
 *.tsbuildinfo
+
+
+# yarn2
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
