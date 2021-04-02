@@ -1,5 +1,5 @@
 import globby from 'globby'
-import {Command} from 'clipanion'
+import {Command, Option} from 'clipanion'
 import epubcheck from '../utils/epubcheck'
 
 export default class CheckCommand extends Command {
@@ -7,15 +7,14 @@ export default class CheckCommand extends Command {
     description: `检查 epub 文件是否符合规范`,
   })
 
-  @Command.Rest({required: 1})
-  files: string[]
+  static paths = [['c'], ['check']]
 
-  @Command.Path('c')
-  @Command.Path('check')
+  files: string[] = Option.Rest({required: 1})
+
   async execute() {
     const files = this.files
 
-    for (let f of files) {
+    for (const f of files) {
       const pattern = f.includes('*')
       if (pattern) {
         const subfiles = globby.sync(f)

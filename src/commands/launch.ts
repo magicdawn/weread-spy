@@ -6,7 +6,8 @@ export default class extends Command {
     description: 'launch pptr',
   })
 
-  @Command.Path('launch')
+  static paths = [['launch']]
+
   async execute() {
     const {browser} = await getBrowser()
     // operate here

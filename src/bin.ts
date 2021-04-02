@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node-script
 
 import debugFactory from 'debug'
-import {Cli, Command} from 'clipanion'
+import {Builtins, Cli} from 'clipanion'
 
 import GenEpubCommand from './commands/gen'
 import LaunchCommand from './commands/launch'
@@ -24,8 +24,8 @@ const cli = new Cli({
 })
 
 // default commands
-cli.register(Command.Entries.Help)
-cli.register(Command.Entries.Version)
+cli.register(Builtins.HelpCommand)
+cli.register(Builtins.VersionCommand)
 
 // commands
 cli.register(DownloadCommand)

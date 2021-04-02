@@ -1,6 +1,6 @@
 import fse from 'fs-extra'
 import path from 'path'
-import {Command} from 'clipanion'
+import {Command, Option} from 'clipanion'
 import {genEpubFor, checkEpub} from '../utils/epub'
 import {APP_ROOT} from '../utils/common'
 
@@ -9,17 +9,15 @@ export default class extends Command {
     description: `gen ePub file`,
   })
 
-  @Command.String('-u,--url', {
+  static paths = [['gen'], ['gen-epub']]
+
+  url: string = Option.String('-u,--url', {
     description:
       'book start url. e.g(https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180)',
   })
-  url: string
 
-  @Command.Boolean('-c,--clean')
-  clean: boolean
+  clean: boolean = Option.Boolean('-c,--clean')
 
-  @Command.Path('gen')
-  @Command.Path('gen-epub')
   async execute() {
     const {url, clean} = this
     main({url, clean})

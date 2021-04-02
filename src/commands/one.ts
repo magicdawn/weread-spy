@@ -30,7 +30,8 @@ export default class extends Command {
     description: 'one station operation',
   })
 
-  @Command.Path('one')
+  static paths = [['one']]
+
   async execute() {
     const {browser, page} = await getBrowser()
 

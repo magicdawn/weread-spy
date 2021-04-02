@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node-script
+/* eslint-disable camelcase */
 
 /*
 	Produce an EPUB file
@@ -12,15 +13,12 @@ import path from 'path'
 import {performance} from 'perf_hooks'
 import {pipeline} from 'stream'
 import fs from 'fs-extra'
-import _ from 'lodash'
 import nunjucks from 'nunjucks'
 import filenamify from 'filenamify'
-import execa from 'execa'
 import debugFactory from 'debug'
 import {Data, APP_ROOT, PROJECT_ROOT} from './common'
 import getImgSrcInfo from './epub-img'
 import {createWorkers} from './processContent/index.main'
-import processContent from './processContent'
 import mapOnWorker from './mapOnWorker'
 import {FileItem} from './EpubModel'
 import Book from './Book'
@@ -28,7 +26,15 @@ import epubcheck from './epubcheck'
 
 const debug = debugFactory('weread-spy:utils:epub')
 
-export async function gen({epubFile, data, clean}: {epubFile: string; data: Data; clean: boolean}) {
+export async function gen({
+  epubFile,
+  data,
+  clean,
+}: {
+  epubFile: string
+  data: Data
+  clean: boolean
+}): Promise<void> {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
   const template_base = path.join(PROJECT_ROOT, 'assets/templates/epub/')
 
@@ -63,7 +69,7 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
   let coverPageFileItem: FileItem
 
   if (book.coverUrl) {
-    const {localFile, contentType} = imgSrcInfo[coverUrl]
+    const {localFile} = imgSrcInfo[coverUrl]
     delete imgSrcInfo[coverUrl]
 
     // cover img
@@ -145,7 +151,7 @@ export async function gen({epubFile, data, clean}: {epubFile: string; data: Data
    * img assets (cover removed)
    */
 
-  for (let src of Object.keys(imgSrcInfo)) {
+  for (const src of Object.keys(imgSrcInfo)) {
     const {contentType, localFile, properties} = imgSrcInfo[src]
     addFile({filename: localFile, properties}) // content will be imgs dir
   }

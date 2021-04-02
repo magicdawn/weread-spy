@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import cheerio from 'cheerio'
 import njk from 'nunjucks'
 import prettier from 'prettier'
@@ -60,7 +61,7 @@ export default function processContent(info: Info, options: ProcessContentOption
   }
 
   // replace
-  html = html.replace(/\&nbsp\;/g, ' ')
+  html = html.replace(/&nbsp;/g, ' ')
 
   let style = chapterContentStyles
   try {

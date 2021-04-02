@@ -1,7 +1,7 @@
 import fse from 'fs-extra'
 import path from 'path'
 import pptr from 'puppeteer'
-import {Command} from 'clipanion'
+import {Command, Option} from 'clipanion'
 import {APP_ROOT} from '../utils/common'
 import {getBrowser} from '../utils/pptr'
 
@@ -10,16 +10,14 @@ export default class DownloadCommand extends Command {
     description: `下载 epub`,
   })
 
-  @Command.String('-u,--url', {
+  static paths = [['dl'], ['download']]
+
+  url: string = Option.String('-u,--url', {
     description: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
   })
-  url: string
 
-  @Command.Boolean('--just-launch', {})
-  justLaunch: boolean
+  justLaunch: boolean = Option.Boolean('--just-launch', {})
 
-  @Command.Path('dl')
-  @Command.Path('download')
   async execute() {
     const url = this.url
     const justLaunch = this.justLaunch
@@ -34,7 +32,7 @@ export default class DownloadCommand extends Command {
 
 export async function main(
   bookReadUrl: string,
-  justLaunch: boolean = false,
+  justLaunch = false,
   options: {page?: pptr.Page; browser?: pptr.Browser} = {}
 ) {
   let browser: pptr.Browser
@@ -54,7 +52,6 @@ export async function main(
 
   const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {
     let ok = false
-    let state = null
     while (!ok) {
       ok = await page.$eval('#app', test, ...args)
       if (!ok) {
@@ -111,7 +108,7 @@ export async function main(
   }
 
   const infos = []
-  for (let c of startInfo.chapterInfos) {
+  for (const c of startInfo.chapterInfos) {
     const {chapterUid} = c
 
     console.log('before-changeChapter %s', chapterUid)
