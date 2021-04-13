@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import fse from 'fs-extra'
 import path from 'path'
 import pptr from 'puppeteer'

@@ -144,7 +144,7 @@ function traverse(el: cheerio.Element, $: cheerio.Selector, onNode: OnNode, extr
   const {traverseChildren = true} = onNode(el, $, extraData) || {}
 
   // children
-  if (traverseChildren) {
+  if (el.type === 'tag' && traverseChildren) {
     el.childNodes?.forEach((c) => {
       if (c.type === 'text') return
       traverse(c, $, onNode, extraData)
@@ -154,22 +154,27 @@ function traverse(el: cheerio.Element, $: cheerio.Selector, onNode: OnNode, extr
 
 function removeDataAttr(el: cheerio.Element, $: cheerio.Selector): OnNodeResult {
   const $el = $(el)
-  Object.keys(el.attribs || {})
-    .filter((k) => {
-      return k.startsWith('data-') && !DATA_ATTR_WHITELIST.includes(k)
-    })
-    .forEach((attr) => {
-      $el.removeAttr(attr)
-    })
+  if (el.type === 'tag') {
+    Object.keys(el.attribs || {})
+      .filter((k) => {
+        return k.startsWith('data-') && !DATA_ATTR_WHITELIST.includes(k)
+      })
+      .forEach((attr) => {
+        $el.removeAttr(attr)
+      })
+  }
 }
 
 function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResult {
+  if (el.type !== 'tag') return
   if (!el.childNodes?.length) {
     return
   }
 
   const isSimpleTextSpan = (c: cheerio.Element) =>
-    c.tagName?.toLowerCase() === 'span' && Object.keys(c.attribs || {}).length === 0
+    c.type === 'tag' &&
+    c.tagName?.toLowerCase() === 'span' &&
+    Object.keys(c.attribs || {}).length === 0
 
   const shouldCombine = el.childNodes.every(isSimpleTextSpan)
   const $el = $(el)
@@ -185,9 +190,9 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
     const arr: cheerio.Cheerio[] = []
     let lastIsSimpleTextSpan = true
 
-    for (let c of el.childNodes) {
+    for (const c of el.childNodes) {
       if (isSimpleTextSpan(c)) {
-        let cur$ = _.last(arr)
+        const cur$ = _.last(arr)
         if (cur$ && lastIsSimpleTextSpan) {
           arr[arr.length - 1] = cur$.add(c)
         } else {
@@ -201,7 +206,7 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
 
     $el.empty()
 
-    for (let cur$ of arr) {
+    for (const cur$ of arr) {
       if (cur$.toArray().every(isSimpleTextSpan)) {
         $el.append(`<span>${cur$.text()}</span>`)
       } else {
@@ -219,13 +224,13 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
  */
 
 function collectImgSrc(el: cheerio.Element, $: cheerio.Selector, ctx: any): OnNodeResult {
-  if (el.tagName?.toLowerCase?.() === 'img') {
+  if (el.type === 'tag' && el.tagName?.toLowerCase?.() === 'img') {
     const src = $(el).data('src')
     ;(ctx as string[]).push(src)
   }
 
   // style="background-image:url(https://res.weread.qq.com/wrepub/web/910419/copyright.jpg);"
-  const style = el.attribs?.style
+  const style = el.type === 'tag' ? el.attribs?.style : ''
   if (style?.includes('background-image:')) {
     const m = /(?:^|; *?)background-image *?: *?url\(([\S]+?)\)/.exec(style)
     if (m?.[1]) {
@@ -237,6 +242,8 @@ function collectImgSrc(el: cheerio.Element, $: cheerio.Selector, ctx: any): OnNo
 }
 
 function fixImgSrc(el: cheerio.Element, $: cheerio.Selector, ctx: any): OnNodeResult {
+  if (el.type !== 'tag') return
+
   if (el.tagName?.toLowerCase?.() === 'img') {
     const $el = $(el)
     const src = $el.data('src')

@@ -7,7 +7,7 @@ export default async function mapOnWorker<IN, OUT, W extends Object>(
     let completed = 0
     let started = 0
     let running = 0
-    let results = new Array(arr.length)
+    const results = new Array(arr.length)
 
     const workerIsUnsing = new WeakMap()
 
@@ -30,7 +30,7 @@ export default async function mapOnWorker<IN, OUT, W extends Object>(
 
       while (running < workers.length && started < arr.length) {
         ;(function (index) {
-          let cur = arr[index]
+          const cur = arr[index]
           const worker = getWorker(index)
           Promise.resolve(fn.call(cur, cur, index, arr, worker))
             .then(function (result) {

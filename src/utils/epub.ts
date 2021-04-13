@@ -200,7 +200,7 @@ export async function gen({
   }
 
   // 添加文件
-  for (let f of manifest) {
+  for (const f of manifest) {
     let content: string | Buffer
 
     // f.content = '' 也需要写入

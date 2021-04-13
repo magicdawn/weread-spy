@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import inquirer from 'inquirer'
 import URI from 'urijs'
 import pptr from 'puppeteer'
@@ -82,7 +84,6 @@ export default class extends Command {
 async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
   const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {
     let ok = false
-    let state = null
     while (!ok) {
       ok = await page.$eval('#app', test, ...args)
       if (!ok) {

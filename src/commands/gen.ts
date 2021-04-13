@@ -25,7 +25,7 @@ export default class extends Command {
 }
 
 export async function main({url, clean}: {url: string; clean: boolean}) {
-  let map: any
+  let map: unknown
   try {
     map = await fse.readJsonSync(path.join(APP_ROOT, 'data/book/map.json'))
   } catch (error) {

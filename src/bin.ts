@@ -15,6 +15,7 @@ if (!process.env.DEBUG) {
 }
 
 // @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const {version} = require('../package.json')
 
 const cli = new Cli({
