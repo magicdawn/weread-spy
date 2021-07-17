@@ -3,17 +3,14 @@
   "description": "weread spy",
   "version": "0.0.1",
   "author": "magicdawn",
-  "bin": {
-    "weread-spy": "bin/weread-spy.js",
-    "weread-spy-dev": "bin/weread-spy-dev.js"
-  },
+  "bin": "bin/weread-spy.js",
   "bugs": {
     "url": "https://github.com/magicdawn/weread-spy/issues"
   },
   "dependencies": {
     "archiver": "^5.0.2",
-    "cheerio": "^1.0.0-rc.3",
-    "clipanion": "^3.0.0-rc.11",
+    "cheerio": "^1.0.0-rc.10",
+    "clipanion": "^3.0.0",
     "comlink": "^4.3.0",
     "debug": "^4.2.0",
     "dl-vampire": "^0.5.0",
@@ -50,7 +47,7 @@
     "@types/fs-extra": "^9.0.1",
     "@types/gulp": "^4.0.7",
     "@types/inquirer": "^7.3.1",
-    "@types/jake": "^0.0.32",
+    "@types/jake": "^0.0.33",
     "@types/lodash": "^4.14.161",
     "@types/mime": "^2.0.3",
     "@types/mocha": "^5",
@@ -71,7 +68,7 @@
     "eslint": "^7.11.0",
     "gulp": "^4.0.2",
     "husky": "^4",
-    "jscodeshift": "^0.11.0",
+    "jscodeshift": "^0.13.0",
     "just-scripts": "^1.2.6",
     "lint-staged": "^10",
     "mocha": "^6.1.4",
