@@ -44,7 +44,12 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
   // imgSrcs
   let imgSrcs: string[] = []
   for (let i = 0; i < chapterInfos.length; i++) {
-    const curSrcs = getImgSrcs(data.infos[i].chapterContentHtml)
+    // 2021-08-29 出现 chapterContentHtml 为 string[]
+    let html = data.infos[i].chapterContentHtml
+    if (Array.isArray(html)) {
+      html = html.join('')
+    }
+    const curSrcs = getImgSrcs(html)
     imgSrcs = imgSrcs.concat(curSrcs)
   }
 

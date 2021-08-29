@@ -23,7 +23,11 @@ export default function processContent(info: Info, options: ProcessContentOption
   const {cssFilenames, imgSrcInfo} = options
   debug('processContent for title=%s chapterUid=%s', info.bookInfo.title, currentChapterId)
 
+  // 2021-08-29 出现 chapterContentHtml 为 string[]
   let html = chapterContentHtml
+  if (Array.isArray(html)) {
+    html = html.join('')
+  }
 
   // apply templates
   html = applyTemplate({style: chapterContentStyles, content: html, cssFilenames})
