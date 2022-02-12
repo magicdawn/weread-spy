@@ -12,5 +12,9 @@
     "strict": false,
     "skipLibCheck": true,
     "experimentalDecorators": true
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "swc": true
   }
 }
