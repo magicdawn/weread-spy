@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node-script
+#!/usr/bin/env ts-node
 
 import debugFactory from 'debug'
 import {Builtins, Cli} from 'clipanion'

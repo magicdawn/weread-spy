@@ -1,2 +1,4 @@
 #!/usr/bin/env node
-require('../lib/bin')
+
+require('ts-node/register')
+require('../src/bin')
