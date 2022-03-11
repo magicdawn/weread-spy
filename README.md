@@ -1,24 +1,28 @@
 # weread-spy
 
-> weread spy
+> 使用微信读书 Web 版生成 ePub 电子书 (需要无限卡权限, 或已购买的书)
 
-[![Build Status](https://img.shields.io/travis/magicdawn/weread-spy.svg?style=flat-square)](https://travis-ci.org/magicdawn/weread-spy)
-[![Coverage Status](https://img.shields.io/codecov/c/github/magicdawn/weread-spy.svg?style=flat-square)](https://codecov.io/gh/magicdawn/weread-spy)
-[![npm version](https://img.shields.io/npm/v/weread-spy.svg?style=flat-square)](https://www.npmjs.com/package/weread-spy)
-[![npm downloads](https://img.shields.io/npm/dm/weread-spy.svg?style=flat-square)](https://www.npmjs.com/package/weread-spy)
-[![npm license](https://img.shields.io/npm/l/weread-spy.svg?style=flat-square)](http://magicdawn.mit-license.org)
+## 使用
 
-## Install
+- `git clone` 此项目
+- `pnpm i`
+- `pnpm link --global`
 
-```sh
-$ npm i weread-spy --save
-```
+这样就可以使用 `weread-spy` 命令了
 
-## API
+### 一站式操作 `weread-spy one`
 
-```js
-const wereadSpy = require('weread-spy');
-```
+- 运行此命令, 会自动打开 puppeteer 浏览器
+- 扫码登录
+- 浏览自己想下载的书, 返回命令行. 监控到 url 像是一本书, 输入 `y` 开始生成
+- 需要安装 `Java`, epub check 依赖 java, 可以认为是 ePub 文件的 lint 工具
+- 生成文件在 `<repo>/data/book/` 目录下
+
+### 其他分步的命令
+
+- `weread-spy dl -u <url>` 下载电子书信息
+- `weread-spy gen -u <url>` 根据下载的信息, 生成电子书
+- `weread-spy check` 跑 epub check
 
 ## Changelog
 
