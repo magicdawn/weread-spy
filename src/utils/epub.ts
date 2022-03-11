@@ -107,8 +107,9 @@ export async function gen({
     },
     workers
   )
-
   workers.forEach((w) => w.nodeWorker.unref())
+
+  await new Promise((resolve) => setTimeout(resolve))
   debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
 
   //
