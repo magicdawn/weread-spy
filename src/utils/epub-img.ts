@@ -1,7 +1,7 @@
-import {createHash} from 'crypto'
+import { createHash } from 'crypto'
 import path from 'path'
 import debugFactory from 'debug'
-import {getImgSrcs} from './processContent'
+import { getImgSrcs } from './processContent'
 import pmap from 'promise.map'
 import mime from 'mime'
 import dl from 'dl-vampire'
@@ -13,13 +13,13 @@ const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
 
 export interface ImgSrcInfo {
-  [key: string]: {contentType: string; ext: string; localFile: string; properties?: string}
+  [key: string]: { contentType: string; ext: string; localFile: string; properties?: string }
 }
 
 export default async function getImgSrcInfo(book: Book, clean: boolean) {
   let imgSrcInfo: ImgSrcInfo = {}
 
-  const {data, bookDir} = book
+  const { data, bookDir } = book
   const cacheFile = path.join(bookDir, 'imgs.json')
 
   if (clean) {
@@ -39,7 +39,7 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
     }
   }
 
-  const {chapterInfos} = data.startInfo
+  const { chapterInfos } = data.startInfo
 
   // imgSrcs
   let imgSrcs: string[] = []
@@ -116,11 +116,11 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
   await pmap(
     imgSrcs,
     async (src) => {
-      const {localFile} = imgSrcInfo[src]
+      const { localFile } = imgSrcInfo[src]
       const file = path.join(bookDir, localFile)
 
       // download
-      await dl({url: src, file})
+      await dl({ url: src, file })
 
       // 识别
       const buf = await fse.readFile(file)
@@ -144,7 +144,7 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
   debug('download img complete')
 
   // save cache
-  await fse.outputJson(cacheFile, imgSrcInfo, {spaces: 2})
+  await fse.outputJson(cacheFile, imgSrcInfo, { spaces: 2 })
 
   return imgSrcInfo
 }

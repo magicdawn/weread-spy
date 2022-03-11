@@ -4,8 +4,8 @@ import njk from 'nunjucks'
 import prettier from 'prettier'
 import _ from 'lodash'
 import debugFactory from 'debug'
-import {Info} from '../common'
-import {ImgSrcInfo} from '../epub-img'
+import { Info } from '../common'
+import { ImgSrcInfo } from '../epub-img'
 
 const debug = debugFactory('weread-spy:utils:processContent')
 const prettierConfig = require('@magicdawn/prettier-config') as prettier.Options
@@ -19,8 +19,8 @@ interface ProcessContentOptions {
 const DATA_ATTR_WHITELIST = ['data-src', 'data-bg-img']
 
 export default function processContent(info: Info, options: ProcessContentOptions) {
-  const {chapterContentHtml, chapterContentStyles, currentChapterId} = info
-  const {cssFilenames, imgSrcInfo} = options
+  const { chapterContentHtml, chapterContentStyles, currentChapterId } = info
+  const { cssFilenames, imgSrcInfo } = options
   debug('processContent for title=%s chapterUid=%s', info.bookInfo.title, currentChapterId)
 
   // 2021-08-29 出现 chapterContentHtml 为 string[]
@@ -30,10 +30,10 @@ export default function processContent(info: Info, options: ProcessContentOption
   }
 
   // apply templates
-  html = applyTemplate({style: chapterContentStyles, content: html, cssFilenames})
+  html = applyTemplate({ style: chapterContentStyles, content: html, cssFilenames })
 
   // new $
-  const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
+  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
   // debug('cheerio loaded')
 
   // remove all data-xxx
@@ -46,7 +46,7 @@ export default function processContent(info: Info, options: ProcessContentOption
 
   // 图片
   const transformImgSrc = (src: string) => imgSrcInfo[src].localFile
-  const ctx: {transformImgSrc: TransformImgSrc; imgs: Array<{src: string; newSrc: string}>} = {
+  const ctx: { transformImgSrc: TransformImgSrc; imgs: Array<{ src: string; newSrc: string }> } = {
     transformImgSrc,
     imgs: [],
   }
@@ -69,7 +69,7 @@ export default function processContent(info: Info, options: ProcessContentOption
 
   let style = chapterContentStyles
   try {
-    style = prettier.format(style, {...prettierConfig, parser: 'css'})
+    style = prettier.format(style, { ...prettierConfig, parser: 'css' })
   } catch (e) {
     console.warn('[prettier] format met error: currentChapterId = %s', currentChapterId)
     console.error(e.stack || e)
@@ -88,7 +88,7 @@ export default function processContent(info: Info, options: ProcessContentOption
 
 export function getImgSrcs(html: string) {
   // new $
-  const $ = cheerio.load(html, {decodeEntities: false, xmlMode: true, lowerCaseTags: true})
+  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
 
   // collect
   const srcs: string[] = []
@@ -138,14 +138,14 @@ function applyTemplate({
   return str
 }
 
-type OnNodeResult = {traverseChildren?: boolean} | undefined | void
+type OnNodeResult = { traverseChildren?: boolean } | undefined | void
 type OnNode = (el: cheerio.Element, $: cheerio.Selector, extraData?: any) => OnNodeResult
 
 function traverse(el: cheerio.Element, $: cheerio.Selector, onNode: OnNode, extraData?: any) {
   const $el = $(el)
 
   // self
-  const {traverseChildren = true} = onNode(el, $, extraData) || {}
+  const { traverseChildren = true } = onNode(el, $, extraData) || {}
 
   // children
   if (el.type === 'tag' && traverseChildren) {
@@ -186,7 +186,7 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
     const text = $el.text()
     $el.empty()
     $el.append(`<span>${text}</span>`)
-    return {traverseChildren: false}
+    return { traverseChildren: false }
   }
 
   const rate = el.childNodes.filter((c) => !isSimpleTextSpan(c)).length / el.childNodes.length
@@ -217,10 +217,10 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
         $el.append(cur$)
       }
     }
-    return {traverseChildren: false}
+    return { traverseChildren: false }
   }
 
-  return {traverseChildren: true}
+  return { traverseChildren: true }
 }
 
 /**

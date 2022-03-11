@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
 import debugFactory from 'debug'
-import {Builtins, Cli} from 'clipanion'
+import { Builtins, Cli } from 'clipanion'
 
 import GenEpubCommand from './commands/gen'
 import LaunchCommand from './commands/launch'
@@ -16,7 +16,7 @@ if (!process.env.DEBUG) {
 
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const {version} = require('../package.json')
+const { version } = require('../package.json')
 
 const cli = new Cli({
   binaryLabel: 'Weread Spy',

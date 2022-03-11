@@ -1,4 +1,4 @@
-import {extend} from 'umi-request'
+import { extend } from 'umi-request'
 
 export default extend({
   headers: {

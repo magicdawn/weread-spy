@@ -10,17 +10,17 @@
  */
 
 import path from 'path'
-import {performance} from 'perf_hooks'
-import {pipeline} from 'stream'
+import { performance } from 'perf_hooks'
+import { pipeline } from 'stream'
 import fs from 'fs-extra'
 import nunjucks from 'nunjucks'
 import filenamify from 'filenamify'
 import debugFactory from 'debug'
-import {Data, APP_ROOT, PROJECT_ROOT} from './common'
+import { Data, APP_ROOT, PROJECT_ROOT } from './common'
 import getImgSrcInfo from './epub-img'
-import {createWorkers} from './processContent/index.main'
+import { createWorkers } from './processContent/index.main'
 import mapOnWorker from './mapOnWorker'
-import {FileItem} from './EpubModel'
+import { FileItem } from './EpubModel'
 import Book from './Book'
 import epubcheck from './epubcheck'
 
@@ -39,10 +39,10 @@ export async function gen({
   const template_base = path.join(PROJECT_ROOT, 'assets/templates/epub/')
 
   const book = new Book(data)
-  const {bookDir, addFile, addTextFile} = book
+  const { bookDir, addFile, addTextFile } = book
 
   // mimetype file must be first
-  book.addZipFile('mimetype', 'application/epub+zip', {compression: 'STORE'})
+  book.addZipFile('mimetype', 'application/epub+zip', { compression: 'STORE' })
 
   // static files from META-INF
   await book.addZipFolder('META-INF', path.join(template_base, 'META-INF'))
@@ -55,7 +55,7 @@ export async function gen({
   ])
 
   // 章节 html
-  const {chapterInfos, bookInfo, bookId} = data.startInfo
+  const { chapterInfos, bookInfo, bookId } = data.startInfo
 
   // 图片
   const imgSrcInfo = await getImgSrcInfo(book, clean)
@@ -69,17 +69,17 @@ export async function gen({
   let coverPageFileItem: FileItem
 
   if (book.coverUrl) {
-    const {localFile} = imgSrcInfo[coverUrl]
+    const { localFile } = imgSrcInfo[coverUrl]
     delete imgSrcInfo[coverUrl]
 
     // cover img
-    coverFileItem = new FileItem({filename: localFile}) // 内容随 imgs 打包
+    coverFileItem = new FileItem({ filename: localFile }) // 内容随 imgs 打包
     addFile(coverFileItem)
 
     // cover xhtml
     coverPageFileItem = new FileItem({
       filename: 'cover.xhtml',
-      content: nunjucks.renderString(coverTemplate, {cover: coverFileItem}),
+      content: nunjucks.renderString(coverTemplate, { cover: coverFileItem }),
     })
     book.coverPageFile = coverPageFileItem
   }
@@ -89,7 +89,7 @@ export async function gen({
   const customCssFile = path.join(bookDir, 'custom.css')
   if (await fs.pathExists(customCssFile)) {
     extraCss.push('custom.css')
-    addFile({filename: 'custom.css', filepath: customCssFile})
+    addFile({ filename: 'custom.css', filepath: customCssFile })
   }
 
   const processContentStart = performance.now()
@@ -98,7 +98,7 @@ export async function gen({
     chapterInfos,
     async (chapterInfo, i, arr, worker) => {
       const c = chapterInfos[i]
-      const {chapterUid} = c
+      const { chapterUid } = c
       const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
       return await worker.api.processContent(data.infos[i], {
         cssFilenames,
@@ -107,8 +107,9 @@ export async function gen({
     },
     workers
   )
-  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
+
   workers.forEach((w) => w.nodeWorker.unref())
+  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
 
   //
   // processContent in this thread
@@ -131,19 +132,19 @@ export async function gen({
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
-    const {chapterUid} = c
-    const {xhtml, style} = processResults[i]
+    const { chapterUid } = c
+    const { xhtml, style } = processResults[i]
 
     // xhtml
     {
       const filename = `chapter-${chapterUid}.xhtml`
-      addTextFile({filename, content: xhtml})
+      addTextFile({ filename, content: xhtml })
     }
 
     // css
     {
       const filename = `css/chapter-${chapterUid}.css`
-      addFile({filename, content: style})
+      addFile({ filename, content: style })
     }
   }
 
@@ -152,8 +153,8 @@ export async function gen({
    */
 
   for (const src of Object.keys(imgSrcInfo)) {
-    const {contentType, localFile, properties} = imgSrcInfo[src]
-    addFile({filename: localFile, properties}) // content will be imgs dir
+    const { contentType, localFile, properties } = imgSrcInfo[src]
+    addFile({ filename: localFile, properties }) // content will be imgs dir
   }
 
   const baseRenderData = {
@@ -177,24 +178,24 @@ export async function gen({
    */
 
   // add nav.xhtml first
-  book.navPageFile = new FileItem({filename: 'nav.xhtml', properties: 'nav'}) // 内容手动写入
-  const {navItems, maxNavDepth} = book.getNavInfo()
+  book.navPageFile = new FileItem({ filename: 'nav.xhtml', properties: 'nav' }) // 内容手动写入
+  const { navItems, maxNavDepth } = book.getNavInfo()
 
   {
-    const renderData = {...baseRenderData, navItems, maxNavDepth}
+    const renderData = { ...baseRenderData, navItems, maxNavDepth }
 
     const nav = nunjucks.renderString(navTemplate, renderData)
     book.addZipFile('OEBPS/nav.xhtml', nav)
 
     const toc = nunjucks.renderString(tocTemplate, renderData)
-    addFile({filename: 'toc.ncx', content: toc, id: 'ncx'})
+    addFile({ filename: 'toc.ncx', content: toc, id: 'ncx' })
   }
 
   const manifest = book.getManifest()
   const spine = book.getSpine()
   {
     // content.opf
-    const renderData = {...baseRenderData, manifest, spine}
+    const renderData = { ...baseRenderData, manifest, spine }
     const opf = nunjucks.renderString(opfTemplate, renderData)
     book.addZipFile('OEBPS/content.opf', opf)
   }
@@ -221,7 +222,7 @@ export async function gen({
   const stream = book.zip.generateNodeStream({
     streamFiles: true,
     compression: 'DEFLATE',
-    compressionOptions: {level: 9},
+    compressionOptions: { level: 9 },
   })
   const output = fs.createWriteStream(epubFile)
   return new Promise((resolve, reject) => {
@@ -243,11 +244,11 @@ function getInfo(id: string) {
   filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）
   const file = path.join(APP_ROOT, `data/book/${filename}.epub`)
 
-  return {data, file}
+  return { data, file }
 }
 
 export async function genEpubFor(id: string, clean: boolean) {
-  const {data, file} = getInfo(id)
+  const { data, file } = getInfo(id)
   await gen({
     epubFile: file,
     data,
@@ -256,6 +257,6 @@ export async function genEpubFor(id: string, clean: boolean) {
 }
 
 export async function checkEpub(id: string) {
-  const {file} = getInfo(id)
+  const { file } = getInfo(id)
   epubcheck(file)
 }

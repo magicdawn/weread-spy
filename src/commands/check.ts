@@ -1,5 +1,5 @@
 import globby from 'globby'
-import {Command, Option} from 'clipanion'
+import { Command, Option } from 'clipanion'
 import epubcheck from '../utils/epubcheck'
 
 export default class CheckCommand extends Command {
@@ -9,7 +9,7 @@ export default class CheckCommand extends Command {
 
   static paths = [['c'], ['check']]
 
-  files: string[] = Option.Rest({required: 1})
+  files: string[] = Option.Rest({ required: 1 })
 
   async execute() {
     const files = this.files

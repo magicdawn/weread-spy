@@ -1,9 +1,9 @@
 import pptr from 'puppeteer'
 import path from 'path'
 import envPaths from 'env-paths'
-import {isPkg, execDir, PROJECT_ROOT} from './common'
+import { isPkg, execDir, PROJECT_ROOT } from './common'
 
-const appCacheDir = envPaths('weread-spy', {suffix: ''}).cache
+const appCacheDir = envPaths('weread-spy', { suffix: '' }).cache
 const userDataDir = isPkg
   ? path.join(appCacheDir, 'pptr-data')
   : path.join(PROJECT_ROOT, 'data/pptr-data')
@@ -49,5 +49,5 @@ export async function getBrowser() {
   const ua = await browser.userAgent()
   console.log('ua = %s', ua)
 
-  return {browser, page}
+  return { browser, page }
 }

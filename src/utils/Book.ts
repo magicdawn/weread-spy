@@ -1,9 +1,9 @@
 import path from 'path'
-import _, {trimStart, trimEnd} from 'lodash'
-import JSZip, {InputType, JSZipFileOptions} from 'jszip'
+import _, { trimStart, trimEnd } from 'lodash'
+import JSZip, { InputType, JSZipFileOptions } from 'jszip'
 import fse from 'fs-extra'
-import {Data, APP_ROOT} from './common'
-import {FileItem, FileItemFields} from './EpubModel'
+import { Data, APP_ROOT } from './common'
+import { FileItem, FileItemFields } from './EpubModel'
 import globby from 'globby'
 
 export type NavItem = {
@@ -105,7 +105,7 @@ export default class Book {
     // 封面
     if (this.coverPageFile) {
       f = this.coverPageFile
-      const {id, filename} = f
+      const { id, filename } = f
       navItems.push({
         id,
         filename,
@@ -117,7 +117,7 @@ export default class Book {
     // 目录
     if (this.navPageFile) {
       f = this.navPageFile
-      const {id, filename} = f
+      const { id, filename } = f
       navItems.push({
         id,
         filename,
@@ -137,7 +137,7 @@ export default class Book {
         arr = item.children
       })
 
-      const {id, filename} = this.textFiles[index]
+      const { id, filename } = this.textFiles[index]
       arr.push({
         id,
         filename,
@@ -146,7 +146,7 @@ export default class Book {
       })
     })
 
-    return {navItems, maxNavDepth}
+    return { navItems, maxNavDepth }
   }
 
   /**
@@ -167,7 +167,7 @@ export default class Book {
 
   // add folder
   async addZipFolder(name: string, localFolder: string) {
-    const files = await globby('**/*.*', {cwd: localFolder})
+    const files = await globby('**/*.*', { cwd: localFolder })
     const content = files.map((f) => fse.createReadStream(path.join(localFolder, f)))
     files.forEach((f, index) => {
       this.addZipFile(trimEnd(name, '/') + '/' + f, content[index])

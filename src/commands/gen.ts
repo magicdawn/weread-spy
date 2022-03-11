@@ -1,8 +1,8 @@
 import fse from 'fs-extra'
 import path from 'path'
-import {Command, Option} from 'clipanion'
-import {genEpubFor, checkEpub} from '../utils/epub'
-import {APP_ROOT} from '../utils/common'
+import { Command, Option } from 'clipanion'
+import { genEpubFor, checkEpub } from '../utils/epub'
+import { APP_ROOT } from '../utils/common'
 
 export default class extends Command {
   static usage = Command.Usage({
@@ -23,12 +23,12 @@ export default class extends Command {
   clean: boolean = Option.Boolean('-c,--clean')
 
   async execute() {
-    const {url, clean, id} = this
-    main({url, clean, id})
+    const { url, clean, id } = this
+    main({ url, clean, id })
   }
 }
 
-export async function main({url, clean, id}: {url?: string; clean: boolean; id?: string}) {
+export async function main({ url, clean, id }: { url?: string; clean: boolean; id?: string }) {
   let map: unknown
   try {
     map = await fse.readJsonSync(path.join(APP_ROOT, 'data/book/map.json'))
@@ -39,7 +39,7 @@ export async function main({url, clean, id}: {url?: string; clean: boolean; id?:
   let bookId = ''
 
   if (url) {
-    ;({bookId} = map[url] || {})
+    ;({ bookId } = map[url] || {})
     if (!bookId) {
       return console.error('can not find id !!!')
     }

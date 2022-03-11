@@ -3,10 +3,10 @@
 import inquirer from 'inquirer'
 import URI from 'urijs'
 import pptr from 'puppeteer'
-import {Command} from 'clipanion'
-import {main as download} from './download'
-import {main as gen} from './gen'
-import {getBrowser} from '../utils/pptr'
+import { Command } from 'clipanion'
+import { main as download } from './download'
+import { main as gen } from './gen'
+import { getBrowser } from '../utils/pptr'
 
 const EXAMPLE_SHELF_BOOK = {
   bookId: '815123',
@@ -35,7 +35,7 @@ export default class extends Command {
   static paths = [['one']]
 
   async execute() {
-    const {browser, page} = await getBrowser()
+    const { browser, page } = await getBrowser()
 
     // 使用 browser goto book readUrl
     let prompt: any
@@ -66,7 +66,7 @@ export default class extends Command {
         ])
 
         // confirm
-        const {confirm} = await prompt
+        const { confirm } = await prompt
         if (!confirm) return
 
         // 移除 listener
@@ -122,7 +122,7 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
     await page.$eval(
       '#routerView',
       (el, uid) => {
-        ;(el as any).__vue__.changeChapter({chapterUid: uid})
+        ;(el as any).__vue__.changeChapter({ chapterUid: uid })
       },
       uid
     )
@@ -139,7 +139,7 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
     const state = (el as any).__vue__.$store.state
     const currentChapterId = state.reader.currentChapter.chapterUid
     const currentState = state?.reader?.chapterContentState
-    console.log({currentChapterId, currentState, id})
+    console.log({ currentChapterId, currentState, id })
     return currentChapterId === id && currentState === 'DONE'
   }, secondChapterUid)
 
@@ -149,14 +149,14 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
     const state = (el as any).__vue__.$store.state
     const currentChapterId = state.reader.currentChapter.chapterUid
     const currentState = state?.reader?.chapterContentState
-    console.log({currentChapterId, currentState, id})
+    console.log({ currentChapterId, currentState, id })
     return currentChapterId === id && currentState === 'DONE'
   }, firstChapterUid)
 
   const bookCoverUrl = await page.url()
 
   // download
-  await download(bookCoverUrl, false, {page, browser})
+  await download(bookCoverUrl, false, { page, browser })
   console.log('-------------------  ')
   console.log()
   console.log('  download complete  ')
@@ -164,7 +164,7 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
   console.log('-------------------  ')
 
   // generate
-  await gen({url: bookCoverUrl, clean: false})
+  await gen({ url: bookCoverUrl, clean: false })
   console.log('-------------------  ')
   console.log()
   console.log('  generate complete  ')

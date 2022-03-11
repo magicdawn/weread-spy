@@ -1,5 +1,5 @@
-import {Command} from 'clipanion'
-import {getBrowser} from '../utils/pptr'
+import { Command } from 'clipanion'
+import { getBrowser } from '../utils/pptr'
 
 export default class extends Command {
   static usage = Command.Usage({
@@ -9,7 +9,7 @@ export default class extends Command {
   static paths = [['launch']]
 
   async execute() {
-    const {browser} = await getBrowser()
+    const { browser } = await getBrowser()
     // operate here
   }
 }

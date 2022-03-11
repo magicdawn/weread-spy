@@ -3,9 +3,9 @@
 import fse from 'fs-extra'
 import path from 'path'
 import pptr from 'puppeteer'
-import {Command, Option} from 'clipanion'
-import {APP_ROOT} from '../utils/common'
-import {getBrowser} from '../utils/pptr'
+import { Command, Option } from 'clipanion'
+import { APP_ROOT } from '../utils/common'
+import { getBrowser } from '../utils/pptr'
 
 export default class DownloadCommand extends Command {
   static usage = Command.Usage({
@@ -35,14 +35,14 @@ export default class DownloadCommand extends Command {
 export async function main(
   bookReadUrl: string,
   justLaunch = false,
-  options: {page?: pptr.Page; browser?: pptr.Browser} = {}
+  options: { page?: pptr.Page; browser?: pptr.Browser } = {}
 ) {
   let browser: pptr.Browser
   let page: pptr.Page
   if (options.page && options.browser) {
-    ;({browser, page} = options)
+    ;({ browser, page } = options)
   } else {
-    ;({browser, page} = await getBrowser())
+    ;({ browser, page } = await getBrowser())
   }
 
   // 只是启动浏览器
@@ -96,14 +96,14 @@ export async function main(
   } catch (error) {
     // noop
   }
-  map = {...map, [bookReadUrl]: {bookId: startInfo.bookId, title: startInfo.bookInfo.title}}
-  fse.outputJsonSync(mapFile, map, {spaces: 2})
+  map = { ...map, [bookReadUrl]: { bookId: startInfo.bookId, title: startInfo.bookInfo.title } }
+  fse.outputJsonSync(mapFile, map, { spaces: 2 })
 
   const changeChapter = async (uid: number) => {
     await page.$eval(
       '#routerView',
       (el, uid) => {
-        ;(el as any).__vue__.changeChapter({chapterUid: uid})
+        ;(el as any).__vue__.changeChapter({ chapterUid: uid })
       },
       uid
     )
@@ -111,7 +111,7 @@ export async function main(
 
   const infos = []
   for (const c of startInfo.chapterInfos) {
-    const {chapterUid} = c
+    const { chapterUid } = c
 
     console.log('before-changeChapter %s', chapterUid)
     await changeChapter(chapterUid)
@@ -119,7 +119,7 @@ export async function main(
       const state = (el as any).__vue__.$store.state
       const currentChapterId = state.reader.currentChapter.chapterUid
       const currentState = state?.reader?.chapterContentState
-      console.log({currentChapterId, currentState, id})
+      console.log({ currentChapterId, currentState, id })
       return currentChapterId === id && currentState === 'DONE'
     }, chapterUid)
     console.log('after-changeChapter %s', chapterUid)
@@ -146,6 +146,8 @@ export async function main(
     startInfo,
     infos,
   }
-  await fse.outputJson(path.join(APP_ROOT, `data/book/${startInfo.bookId}.json`), json, {spaces: 2})
+  await fse.outputJson(path.join(APP_ROOT, `data/book/${startInfo.bookId}.json`), json, {
+    spaces: 2,
+  })
   await browser.close()
 }

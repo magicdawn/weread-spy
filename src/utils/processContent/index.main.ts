@@ -1,4 +1,4 @@
-import {Worker} from 'worker_threads'
+import { Worker } from 'worker_threads'
 import * as Comlink from 'comlink/dist/umd/comlink'
 import nodeEndpoint from 'comlink/dist/umd/node-adapter'
 import os from 'os'
@@ -19,7 +19,7 @@ export function createWorker() {
   const api = Comlink.wrap(nodeEndpoint(worker)) as Comlink.Remote<{
     processContent: ProcessContent
   }>
-  return {api, nodeWorker: worker}
+  return { api, nodeWorker: worker }
 }
 
 export function createWorkers() {

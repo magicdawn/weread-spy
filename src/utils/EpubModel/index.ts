@@ -43,10 +43,10 @@ class Model<T> {
     return JSON.stringify(this.data, null, 2)
   }
   constructor(options: T) {
-    this.data = {...options}
+    this.data = { ...options }
   }
   set(options: T) {
-    this.data = {...this.data, ...options}
+    this.data = { ...this.data, ...options }
   }
 }
 
