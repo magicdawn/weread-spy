@@ -18,11 +18,17 @@ import filenamify from 'filenamify'
 import debugFactory from 'debug'
 import { Data, APP_ROOT, PROJECT_ROOT } from './common'
 import getImgSrcInfo from './epub-img'
-import { createWorkers } from './processContent/index.main'
-import mapOnWorker from './mapOnWorker'
 import { FileItem } from './EpubModel'
 import Book from './Book'
 import epubcheck from './epubcheck'
+
+// worker
+import { createWorkers } from './processContent/index.main'
+import mapOnWorker from './mapOnWorker'
+
+// this thread
+import pmap from 'promise.map'
+import processContent from './processContent'
 
 const debug = debugFactory('weread-spy:utils:epub')
 
@@ -92,44 +98,46 @@ export async function gen({
     addFile({ filename: 'custom.css', filepath: customCssFile })
   }
 
-  const processContentStart = performance.now()
-  const workers = createWorkers()
-  const processResults = await mapOnWorker(
-    chapterInfos,
-    async (chapterInfo, i, arr, worker) => {
-      const c = chapterInfos[i]
-      const { chapterUid } = c
-      const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
-      return await worker.api.processContent(data.infos[i], {
-        cssFilenames,
-        imgSrcInfo,
-      })
-    },
-    workers
-  )
-  workers.forEach((w) => w.nodeWorker.unref())
-
-  await new Promise((resolve) => setTimeout(resolve))
-  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
-
   //
-  // processContent in this thread
+  // processContent in multiple threads, via workers
   //
   // const processContentStart = performance.now()
-  // const processResults = await pmap(
+  // const workers = createWorkers()
+  // const processResults = await mapOnWorker(
   //   chapterInfos,
-  //   async (chapterInfo, i, arr) => {
+  //   async (chapterInfo, i, arr, worker) => {
   //     const c = chapterInfos[i]
-  //     const {chapterUid} = c
+  //     const { chapterUid } = c
   //     const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
-  //     return processContent(data.infos[i], {
+  //     return await worker.api.processContent(data.infos[i], {
   //       cssFilenames,
   //       imgSrcInfo,
   //     })
   //   },
-  //   5
+  //   workers
   // )
+  // workers.forEach((w) => w.nodeWorker.unref())
+  // await new Promise((resolve) => setTimeout(resolve))
   // debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
+
+  //
+  // processContent in this thread
+  //
+  const processContentStart = performance.now()
+  const processResults = await pmap(
+    chapterInfos,
+    async (chapterInfo, i, arr) => {
+      const c = chapterInfos[i]
+      const { chapterUid } = c
+      const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
+      return processContent(data.infos[i], {
+        cssFilenames,
+        imgSrcInfo,
+      })
+    },
+    5
+  )
+  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]

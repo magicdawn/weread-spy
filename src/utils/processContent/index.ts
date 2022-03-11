@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import cheerio from 'cheerio'
+
+import { load as $load } from 'cheerio'
+import type { Element as $Element, Node as $Node, CheerioAPI, Cheerio } from 'cheerio'
 import njk from 'nunjucks'
 import prettier from 'prettier'
 import _ from 'lodash'
@@ -33,16 +35,18 @@ export default function processContent(info: Info, options: ProcessContentOption
   html = applyTemplate({ style: chapterContentStyles, content: html, cssFilenames })
 
   // new $
-  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
+  const $ = $load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
   // debug('cheerio loaded')
 
   // remove all data-xxx
   traverse($.root()[0], $, removeDataAttr)
-  // debug('removeDataAttr complete')
+  debug('removeDataAttr complete')
+  debug($.xml().trim())
 
   // combine span
   traverse($.root()[0], $, removeUnusedSpan)
   // debug('removeUnusedSpan complete')
+  debug($.xml().trim())
 
   // 图片
   const transformImgSrc = (src: string) => imgSrcInfo[src].localFile
@@ -88,7 +92,7 @@ export default function processContent(info: Info, options: ProcessContentOption
 
 export function getImgSrcs(html: string) {
   // new $
-  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
+  const $ = $load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
 
   // collect
   const srcs: string[] = []
@@ -139,24 +143,24 @@ function applyTemplate({
 }
 
 type OnNodeResult = { traverseChildren?: boolean } | undefined | void
-type OnNode = (el: cheerio.Element, $: cheerio.Selector, extraData?: any) => OnNodeResult
+type OnNode = (el: $Node, $: CheerioAPI, extraData?: any) => OnNodeResult
 
-function traverse(el: cheerio.Element, $: cheerio.Selector, onNode: OnNode, extraData?: any) {
+function traverse(el: $Node, $: CheerioAPI, onNode: OnNode, extraData?: any) {
   const $el = $(el)
 
   // self
   const { traverseChildren = true } = onNode(el, $, extraData) || {}
 
   // children
-  if (el.type === 'tag' && traverseChildren) {
-    el.childNodes?.forEach((c) => {
+  if (['tag', 'root'].includes(el.type) && traverseChildren) {
+    ;(el as $Element).childNodes?.forEach((c) => {
       if (c.type === 'text') return
       traverse(c, $, onNode, extraData)
     })
   }
 }
 
-function removeDataAttr(el: cheerio.Element, $: cheerio.Selector): OnNodeResult {
+function removeDataAttr(el: $Element, $: CheerioAPI): OnNodeResult {
   const $el = $(el)
   if (el.type === 'tag') {
     Object.keys(el.attribs || {})
@@ -169,16 +173,16 @@ function removeDataAttr(el: cheerio.Element, $: cheerio.Selector): OnNodeResult 
   }
 }
 
-function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResult {
+function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
   if (el.type !== 'tag') return
   if (!el.childNodes?.length) {
     return
   }
 
-  const isSimpleTextSpan = (c: cheerio.Element) =>
+  const isSimpleTextSpan = (c: $Node) =>
     c.type === 'tag' &&
-    c.tagName?.toLowerCase() === 'span' &&
-    Object.keys(c.attribs || {}).length === 0
+    (c as $Element).tagName?.toLowerCase() === 'span' &&
+    Object.keys((c as $Element).attribs || {}).length === 0
 
   const shouldCombine = el.childNodes.every(isSimpleTextSpan)
   const $el = $(el)
@@ -191,7 +195,7 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
 
   const rate = el.childNodes.filter((c) => !isSimpleTextSpan(c)).length / el.childNodes.length
   if (rate < 1 / 10) {
-    const arr: cheerio.Cheerio[] = []
+    const arr: Cheerio<$Node>[] = []
     let lastIsSimpleTextSpan = true
 
     for (const c of el.childNodes) {
@@ -227,9 +231,9 @@ function removeUnusedSpan(el: cheerio.Element, $: cheerio.Selector): OnNodeResul
  * 收集 img src
  */
 
-function collectImgSrc(el: cheerio.Element, $: cheerio.Selector, ctx: any): OnNodeResult {
+function collectImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
   if (el.type === 'tag' && el.tagName?.toLowerCase?.() === 'img') {
-    const src = $(el).data('src')
+    const src = $(el).data('src') as string
     ;(ctx as string[]).push(src)
   }
 
@@ -245,7 +249,7 @@ function collectImgSrc(el: cheerio.Element, $: cheerio.Selector, ctx: any): OnNo
   }
 }
 
-function fixImgSrc(el: cheerio.Element, $: cheerio.Selector, ctx: any): OnNodeResult {
+function fixImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
   if (el.type !== 'tag') return
 
   if (el.tagName?.toLowerCase?.() === 'img') {
