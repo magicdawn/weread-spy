@@ -20,7 +20,9 @@ export default class extends Command {
     description: 'book id. e.g(812443)',
   })
 
-  clean: boolean = Option.Boolean('-c,--clean')
+  clean: boolean = Option.Boolean('-c,--clean', {
+    description: 'clean imgs before gen',
+  })
 
   async execute() {
     const { url, clean, id } = this

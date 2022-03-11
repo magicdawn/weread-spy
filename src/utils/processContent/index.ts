@@ -40,13 +40,13 @@ export default function processContent(info: Info, options: ProcessContentOption
 
   // remove all data-xxx
   traverse($.root()[0], $, removeDataAttr)
-  debug('removeDataAttr complete')
-  debug($.xml().trim())
+  // debug('removeDataAttr complete')
+  // debug($.xml().trim())
 
   // combine span
   traverse($.root()[0], $, removeUnusedSpan)
   // debug('removeUnusedSpan complete')
-  debug($.xml().trim())
+  // debug($.xml().trim())
 
   // 图片
   const transformImgSrc = (src: string) => imgSrcInfo[src].localFile
