@@ -164,7 +164,7 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
   console.log('-------------------  ')
 
   // generate
-  await gen({ url: bookCoverUrl, clean: false })
+  await gen({ url: bookCoverUrl, clean: true })
   console.log('-------------------  ')
   console.log()
   console.log('  generate complete  ')
