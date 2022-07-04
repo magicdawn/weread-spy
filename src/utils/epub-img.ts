@@ -113,6 +113,8 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
     }
   }
 
+  console.log(imgSrcs, imgSrcInfo)
+
   await pmap(
     imgSrcs,
     async (src) => {
@@ -120,7 +122,17 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
       const file = path.join(bookDir, localFile)
 
       // download
-      await dl({ url: src, file })
+      try {
+        await dl({ url: src, file })
+      } catch (e) {
+        // 例如 https://res.weread.qq.com/wrepub/web/855825/copyright.jpg
+        if (e?.statusCode === 404) {
+          delete imgSrcInfo[src] // 剔除了, 当他不存在
+          return
+        }
+
+        throw e
+      }
 
       // 识别
       const buf = await fse.readFile(file)

@@ -49,7 +49,7 @@ export default function processContent(info: Info, options: ProcessContentOption
   // debug($.xml().trim())
 
   // 图片
-  const transformImgSrc = (src: string) => imgSrcInfo[src].localFile
+  const transformImgSrc = (src: string) => imgSrcInfo[src]?.localFile
   const ctx: { transformImgSrc: TransformImgSrc; imgs: Array<{ src: string; newSrc: string }> } = {
     transformImgSrc,
     imgs: [],
@@ -272,7 +272,7 @@ function fixImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
   }
 
   // style="background-image:url(https://res.weread.qq.com/wrepub/web/910419/copyright.jpg);"
-  const style = el.attribs?.style
+  const style: string = el.attribs?.style
   if (style?.includes('background-image:')) {
     const m = /(?:^|; *?)background-image *?: *?url\(([\S]+?)\)/.exec(style)
     if (m?.[1]) {
@@ -281,14 +281,37 @@ function fixImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
 
       // transform
       const newSrc = ctx.transformImgSrc(src)
-      ctx.imgs.push({
-        src,
-        newSrc,
-      })
 
-      // replace style
-      const newStyle = style.replace(src, newSrc)
-      $el.attr('style', newStyle)
+      if (newSrc) {
+        ctx.imgs.push({
+          src,
+          newSrc,
+        })
+
+        // replace style
+        const newStyle = style.replace(src, newSrc)
+        $el.attr('style', newStyle)
+      }
+
+      // 当 src 404 时, 丢弃 style
+      else {
+        debug('fixImgSrc: transformImgSrc return empty for %s', src)
+
+        const newStyle = style
+          .split(';')
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .filter((oneStyle) => !oneStyle.startsWith('background-image:'))
+          .join(';')
+
+        if (newStyle) {
+          $el.attr('style', newStyle)
+          debug('fixImgSrc: style=%s -> style=%s', style, newStyle)
+        } else {
+          $el.removeAttr('style')
+          debug('fixImgSrc: removeAttr style=%s', style)
+        }
+      }
     }
   }
 }

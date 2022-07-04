@@ -41,7 +41,7 @@
     "@babel/core": "^7",
     "@babel/preset-env": "^7",
     "@magicdawn/eslint-config": "^0.0.6",
-    "@magicdawn/prettier-config": "^0.0.1",
+    "@magicdawn/prettier-config": "^0.0.2",
     "@swc/core": "^1.2.152",
     "@swc/helpers": "^0.3.6",
     "@tsconfig/node12": "^1.0.9",
@@ -71,13 +71,13 @@
     "codecov": "^3.8.3",
     "eslint": "^7.32.0",
     "gulp": "^4.0.2",
-    "husky": "^4.3.8",
+    "husky": "^8.0.1",
     "jscodeshift": "^0.13.1",
     "just-scripts": "^1.8.0",
-    "lint-staged": "^10.5.4",
+    "lint-staged": "^13.0.3",
     "mocha": "^6.2.3",
     "nyc": "^14.1.1",
-    "prettier": "^2.5.1",
+    "prettier": "^2.7.1",
     "should": "^13.2.3",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.2"
@@ -99,6 +99,9 @@
   "lint-staged": {
     "*.{js,less,vue,ts}": [
       "prettier --write"
+    ],
+    "*.{js,jsx,ts,tsx,less,md}": [
+      "prettier --write"
     ]
   },
   "repository": {
@@ -112,7 +115,8 @@
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "report-cover": "codecov",
     "test": "mocha",
-    "test-cover": "nyc --reporter=lcov --reporter=text mocha"
+    "test-cover": "nyc --reporter=lcov --reporter=text mocha",
+    "prepare": "husky install"
   },
   "types": "lib/index.d.ts",
   "pkg": {
