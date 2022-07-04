@@ -97,9 +97,6 @@
   ],
   "license": "ISC",
   "lint-staged": {
-    "*.{js,less,vue,ts}": [
-      "prettier --write"
-    ],
     "*.{js,jsx,ts,tsx,less,md}": [
       "prettier --write"
     ]
