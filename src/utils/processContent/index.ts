@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { load as $load } from 'cheerio'
-import type { Element as $Element, Node as $Node, CheerioAPI, Cheerio } from 'cheerio'
+import type { Element as $Element, AnyNode as $AnyNode, CheerioAPI, Cheerio } from 'cheerio'
 import njk from 'nunjucks'
 import prettier from 'prettier'
 import _ from 'lodash'
@@ -143,9 +143,9 @@ function applyTemplate({
 }
 
 type OnNodeResult = { traverseChildren?: boolean } | undefined | void
-type OnNode = (el: $Node, $: CheerioAPI, extraData?: any) => OnNodeResult
+type OnNode = (el: $AnyNode, $: CheerioAPI, extraData?: any) => OnNodeResult
 
-function traverse(el: $Node, $: CheerioAPI, onNode: OnNode, extraData?: any) {
+function traverse(el: $AnyNode, $: CheerioAPI, onNode: OnNode, extraData?: any) {
   const $el = $(el)
 
   // self
@@ -179,7 +179,7 @@ function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
     return
   }
 
-  const isSimpleTextSpan = (c: $Node) =>
+  const isSimpleTextSpan = (c: $AnyNode) =>
     c.type === 'tag' &&
     (c as $Element).tagName?.toLowerCase() === 'span' &&
     Object.keys((c as $Element).attribs || {}).length === 0
@@ -195,7 +195,7 @@ function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
 
   const rate = el.childNodes.filter((c) => !isSimpleTextSpan(c)).length / el.childNodes.length
   if (rate < 1 / 10) {
-    const arr: Cheerio<$Node>[] = []
+    const arr: Cheerio<$AnyNode>[] = []
     let lastIsSimpleTextSpan = true
 
     for (const c of el.childNodes) {
