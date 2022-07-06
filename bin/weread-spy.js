@@ -1,4 +1,8 @@
 #!/usr/bin/env node
 
-require('ts-node/register')
+/* eslint-disable @typescript-eslint/no-var-requires */
+require('ts-node').register({
+  project: __dirname + '/../tsconfig.json',
+})
+
 require('../src/bin')
