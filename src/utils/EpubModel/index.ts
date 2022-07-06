@@ -92,6 +92,6 @@ export class FileItem extends Model<FileItemFields> {
   }
 
   get id() {
-    return this.data.id || this.data.filename.replace(/[\/]/g, '__')
+    return this.data.id || this.data.filename.replace(/[/]/g, '__')
   }
 }
