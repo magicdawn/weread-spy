@@ -6,9 +6,9 @@
 
 ### code style
 
-- [ ] jszip
-- [ ] Epub class / Book class
+- [x] jszip
+- [x] Epub class / Book class
 
 ### make book look good in iBook & duokan
 
-- [ ] some inline style ?
+- [x] some inline style ?
