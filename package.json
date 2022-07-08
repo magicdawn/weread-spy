@@ -3,9 +3,19 @@
   "description": "weread spy",
   "version": "0.0.1",
   "author": "magicdawn",
-  "bin": "bin/weread-spy.js",
   "main": "bin/weread-spy.js",
-  "types": "lib/index.d.ts",
+  "bin": {
+    "weread-spy": "bin/weread-spy.js"
+  },
+  "files": [
+    "assets",
+    "bin/weread-spy.js",
+    "lib",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "package.json"
+  ],
   "bugs": {
     "url": "https://github.com/magicdawn/weread-spy/issues"
   },
@@ -18,20 +28,20 @@
     "weread"
   ],
   "scripts": {
+    "prepare": "husky install",
     "dev": "tsc -w --incremental",
     "build": "rm -rf lib; rm tsconfig.tsbuildinfo; tsc",
     "gen-readme": "swig render ./readme/readme.md > README.md && prettier --write README.md",
-    "posttest": "eslint . --ext .ts --config .eslintrc",
-    "report-cover": "codecov",
     "test": "mocha",
     "test-cover": "nyc --reporter=lcov --reporter=text mocha",
-    "prepare": "husky install"
+    "prepublishOnly": "pnpm build"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/magicdawn/weread-spy.git"
   },
   "dependencies": {
+    "@magicdawn/prettier-config": "^0.0.2",
     "cheerio": "1.0.0-rc.12",
     "clipanion": "^3.2.0-rc.11",
     "comlink": "^4.3.1",
@@ -51,6 +61,7 @@
     "ms": "^2.1.3",
     "node-fetch": "^3.2.6",
     "nunjucks": "^3.2.3",
+    "prettier": "^2.7.1",
     "promise.map": "^0.3.1",
     "puppeteer": "^15.3.1",
     "sharp": "^0.30.7",
@@ -61,7 +72,6 @@
   },
   "devDependencies": {
     "@magicdawn/eslint-config": "^0.0.6",
-    "@magicdawn/prettier-config": "^0.0.2",
     "@swc/core": "^1.2.210",
     "@swc/helpers": "^0.4.3",
     "@types/debug": "^4.1.7",
@@ -87,7 +97,6 @@
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "mocha": "^10.0.0",
-    "prettier": "^2.7.1",
     "should": "^13.2.3",
     "ts-node": "^10.8.2",
     "typescript": "^4.7.4"
