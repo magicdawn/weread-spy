@@ -26,7 +26,7 @@ $ pnpm add weread-spy -g
 - 扫码登录
 - 浏览自己想下载的书, 返回命令行. 监控到 url 像是一本书, 输入 `y` 开始生成
 - 需要安装 `Java`, epub check 依赖 java, 可以认为是 ePub 文件的 lint 工具
-- 生成文件在当前目录下, 或者使用 `weread-spy one -d some-dir` 知道输出目录
+- 生成 epub 文件在当前目录下, 或者使用 `weread-spy one -d some-dir` 知道输出目录
 
 数据文件在 `~/Library/Appication Support/weread-spy/` 目录下
 
