@@ -29,7 +29,7 @@ export interface FileItemFields {
   content?: string | Buffer
   filepath?: string // for content
   id?: string
-  mimetype?: string
+  mimetype?: string | null
   properties?: string
 }
 

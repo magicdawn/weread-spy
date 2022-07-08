@@ -7,4 +7,6 @@ const api = {
   processContent,
   getImgSrcs,
 }
-Comlink.expose(api, nodeEndpoint(parentPort))
+
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+Comlink.expose(api, nodeEndpoint(parentPort!))

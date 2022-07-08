@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "author": "magicdawn",
   "bin": "bin/weread-spy.js",
+  "main": "bin/weread-spy.js",
   "types": "lib/index.d.ts",
   "bugs": {
     "url": "https://github.com/magicdawn/weread-spy/issues"

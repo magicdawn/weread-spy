@@ -71,8 +71,8 @@ export async function gen({
    */
 
   const coverUrl = book.coverUrl
-  let coverFileItem: FileItem // save for manifest.meta.cover
-  let coverPageFileItem: FileItem
+  let coverFileItem: FileItem | undefined // save for manifest.meta.cover
+  let coverPageFileItem: FileItem | undefined
 
   if (book.coverUrl) {
     const { localFile } = imgSrcInfo[coverUrl]
@@ -91,7 +91,7 @@ export async function gen({
   }
 
   // extra css
-  const extraCss = []
+  const extraCss: string[] = []
   const customCssFile = path.join(bookDir, 'custom.css')
   if (await fs.pathExists(customCssFile)) {
     extraCss.push('custom.css')

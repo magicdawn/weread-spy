@@ -37,7 +37,9 @@ export default async function mapOnWorker<IN, OUT, W extends Object>(
               running--
               completed++
               results[index] = result
-              workerIsUnsing.delete(worker)
+
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              workerIsUnsing.delete(worker!)
 
               replenish()
             })

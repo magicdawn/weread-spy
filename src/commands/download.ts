@@ -14,17 +14,17 @@ export default class DownloadCommand extends Command {
 
   static paths = [['dl'], ['download']]
 
-  url: string = Option.String('-u,--url', {
+  url?: string = Option.String('-u,--url', {
     description: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
   })
 
-  justLaunch: boolean = Option.Boolean('--just-launch', {})
+  justLaunch?: boolean = Option.Boolean('--just-launch', {})
 
   async execute() {
     const url = this.url
     const justLaunch = this.justLaunch
 
-    if (!justLaunch && !url) {
+    if (!justLaunch || !url) {
       return console.error('url is required')
     }
 
@@ -109,7 +109,7 @@ export async function main(
     )
   }
 
-  const infos = []
+  const infos: any[] = []
   for (const c of startInfo.chapterInfos) {
     const { chapterUid } = c
 

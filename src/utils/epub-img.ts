@@ -113,8 +113,6 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
     }
   }
 
-  console.log(imgSrcs, imgSrcInfo)
-
   await pmap(
     imgSrcs,
     async (src) => {
@@ -138,7 +136,8 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
       const buf = await fse.readFile(file)
       const meta = await sharp(buf).metadata()
       const ext = meta.format
-      const contentType = mime.getType(ext)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const contentType = mime.getType(ext!)
 
       // attach
       const localFileNew = localFile + '.' + ext

@@ -11,27 +11,27 @@ export default class extends Command {
 
   static paths = [['gen'], ['gen-epub']]
 
-  url: string = Option.String('-u,--url', {
+  url?: string = Option.String('-u,--url', {
     description:
       'book start url. e.g(https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180)',
   })
 
-  id: string = Option.String('-i,--id', {
+  id?: string = Option.String('-i,--id', {
     description: 'book id. e.g(812443)',
   })
 
-  clean: boolean = Option.Boolean('-c,--clean', {
+  clean?: boolean = Option.Boolean('-c,--clean', {
     description: 'clean imgs before gen',
   })
 
   async execute() {
     const { url, clean, id } = this
-    main({ url, clean, id })
+    main({ url, clean: Boolean(clean), id })
   }
 }
 
 export async function main({ url, clean, id }: { url?: string; clean: boolean; id?: string }) {
-  let map: unknown
+  let map: Record<string, any>
   try {
     map = await fse.readJsonSync(path.join(APP_ROOT, 'data/book/map.json'))
   } catch (error) {

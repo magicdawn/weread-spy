@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import path from 'path'
 import _, { trimStart, trimEnd } from 'lodash'
 import JSZip, { InputType, JSZipFileOptions } from 'jszip'
@@ -133,8 +134,9 @@ export default class Book {
       let arr = navItems
       _.times(cur.level - 1, () => {
         const item = _.last(navItems)
-        if (!item.children) item.children = []
-        arr = item.children
+        // FIXME: none null assert
+        if (!item!.children) item!.children = []
+        arr = item!.children
       })
 
       const { id, filename } = this.textFiles[index]
