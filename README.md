@@ -2,7 +2,17 @@
 
 > 使用微信读书 Web 版生成 ePub 电子书 (需要无限卡权限, 或已购买的书)
 
-## 使用
+[![npm version](https://img.shields.io/npm/v/weread-spy.svg?style=flat-square)](https://www.npmjs.com/package/weread-spy)
+[![npm downloads](https://img.shields.io/npm/dm/weread-spy.svg?style=flat-square)](https://www.npmjs.com/package/weread-spy)
+[![npm license](https://img.shields.io/npm/l/weread-spy.svg?style=flat-square)](http://magicdawn.mit-license.org)
+
+## 安装
+
+```sh
+$ pnpm add weread-spy -g
+```
+
+### 或者使用源码
 
 - `git clone` 此项目
 - `pnpm i`
@@ -16,7 +26,9 @@
 - 扫码登录
 - 浏览自己想下载的书, 返回命令行. 监控到 url 像是一本书, 输入 `y` 开始生成
 - 需要安装 `Java`, epub check 依赖 java, 可以认为是 ePub 文件的 lint 工具
-- 生成文件在 `<repo>/data/book/` 目录下
+- 生成文件在当前目录下, 或者使用 `weread-spy one -d some-dir` 知道输出目录
+
+数据文件在 `~/Library/Appication Support/weread-spy/` 目录下
 
 ### 其他分步的命令
 
