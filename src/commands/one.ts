@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+import { Command, Option } from 'clipanion'
 import inquirer from 'inquirer'
-import URI from 'urijs'
 import pptr from 'puppeteer'
-import { Command } from 'clipanion'
+import URI from 'urijs'
+import { baseDebug } from '../utils/common'
+import { getBrowser } from '../utils/pptr'
 import { main as download } from './download'
 import { main as gen } from './gen'
-import { getBrowser } from '../utils/pptr'
+
+const debug = baseDebug.extend('one')
 
 const EXAMPLE_SHELF_BOOK = {
   bookId: '815123',
@@ -29,10 +30,14 @@ type ShelfBook = typeof EXAMPLE_SHELF_BOOK
 
 export default class extends Command {
   static usage = Command.Usage({
-    description: 'one station operation',
+    description: '一站式操作, 启动浏览器, 浏览阅读网页, 回到控制台输入 y 开始生成',
   })
 
   static paths = [['one']]
+
+  dir = Option.String('-d,--dir', {
+    description: 'epub 文件输出目录, 默认当前文件夹',
+  })
 
   async execute() {
     const { browser, page } = await getBrowser()
@@ -52,7 +57,7 @@ export default class extends Command {
           console.log('')
         }
 
-        console.log('pageUrl is like a book')
+        console.log('当前浏览链接像是一本书')
         console.log(pageUrl)
         const title = await page.title()
 
@@ -61,7 +66,7 @@ export default class extends Command {
           {
             type: 'confirm',
             name: 'confirm',
-            message: `书名: ${title}`,
+            message: `书名: ${title}, 是否下载: `,
           },
         ])
 
@@ -73,7 +78,7 @@ export default class extends Command {
         page.off('framenavigated', handler)
 
         // 确认下载
-        decideDownload(page, browser)
+        decideDownload(page, browser, this.dir)
       }
     }
 
@@ -81,7 +86,7 @@ export default class extends Command {
   }
 }
 
-async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
+async function decideDownload(page: pptr.Page, browser: pptr.Browser, dir?: string) {
   const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {
     let ok = false
     while (!ok) {
@@ -153,21 +158,14 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser) {
     return currentChapterId === id && currentState === 'DONE'
   }, firstChapterUid)
 
-  const bookCoverUrl = await page.url()
+  const bookCoverUrl = page.url()
 
   // download
   await download(bookCoverUrl, false, { page, browser })
-  console.log('-------------------  ')
-  console.log()
-  console.log('  download complete  ')
-  console.log()
-  console.log('-------------------  ')
+  debug('-'.repeat(20), 'download complete', '-'.repeat(20))
 
   // generate
-  await gen({ url: bookCoverUrl, clean: true })
-  console.log('-------------------  ')
-  console.log()
-  console.log('  generate complete  ')
-  console.log()
-  console.log('-------------------  ')
+  const file = await gen({ url: bookCoverUrl, clean: true, dir })
+  debug('-'.repeat(20), 'generate complete', '-'.repeat(20))
+  debug('epub 文件: %s', file)
 }

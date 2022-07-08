@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import debugFactory from 'debug'
 import { Builtins, Cli } from 'clipanion'
 
@@ -19,7 +17,7 @@ if (!process.env.DEBUG) {
 const { version } = require('../package.json')
 
 const cli = new Cli({
-  binaryLabel: 'Weread Spy',
+  binaryLabel: '微信读书下载器',
   binaryName: 'weread-spy',
   binaryVersion: version,
 })

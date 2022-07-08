@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-require('ts-node').register({
-  project: __dirname + '/../tsconfig.json',
-})
+const isDev = require('fs').existsSync(__dirname + '/.dev')
 
-require('../src/bin')
+if (isDev) {
+  require('ts-node').register({
+    project: __dirname + '/../tsconfig.json',
+  })
+  require('../src/bin')
+} else {
+  require('../lib/bin')
+}

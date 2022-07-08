@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Command, Option } from 'clipanion'
 import fse from 'fs-extra'
 import path from 'path'
 import pptr from 'puppeteer'
-import { Command, Option } from 'clipanion'
-import { APP_ROOT } from '../utils/common'
+import { baseDebug, BOOKS_DIR, BOOKS_MAP_FILE } from '../utils/common'
 import { getBrowser } from '../utils/pptr'
+
+const debug = baseDebug.extend('download')
 
 export default class DownloadCommand extends Command {
   static usage = Command.Usage({
@@ -89,15 +91,14 @@ export async function main(
   }
 
   // save map
-  const mapFile = path.join(APP_ROOT, 'data/book/map.json')
   let map: any
   try {
-    map = fse.readJsonSync(mapFile)
+    map = fse.readJsonSync(BOOKS_MAP_FILE)
   } catch (error) {
     // noop
   }
   map = { ...map, [bookReadUrl]: { bookId: startInfo.bookId, title: startInfo.bookInfo.title } }
-  fse.outputJsonSync(mapFile, map, { spaces: 2 })
+  fse.outputJsonSync(BOOKS_MAP_FILE, map, { spaces: 2 })
 
   const changeChapter = async (uid: number) => {
     await page.$eval(
@@ -113,7 +114,7 @@ export async function main(
   for (const c of startInfo.chapterInfos) {
     const { chapterUid } = c
 
-    console.log('before-changeChapter %s', chapterUid)
+    // console.log('before-changeChapter %s', chapterUid)
     await changeChapter(chapterUid)
     await waitCondition((el, id) => {
       const state = (el as any).__vue__.$store.state
@@ -122,7 +123,7 @@ export async function main(
       console.log({ currentChapterId, currentState, id })
       return currentChapterId === id && currentState === 'DONE'
     }, chapterUid)
-    console.log('after-changeChapter %s', chapterUid)
+    debug('已收集章节 id=%s', chapterUid)
 
     const state = await page.$eval('#app', (el) => {
       const state = (el as any).__vue__.$store.state
@@ -146,8 +147,15 @@ export async function main(
     startInfo,
     infos,
   }
-  await fse.outputJson(path.join(APP_ROOT, `data/book/${startInfo.bookId}.json`), json, {
+
+  const { bookId } = startInfo
+  const bookJsonFile = path.join(BOOKS_DIR, `${bookId}.json`)
+  await fse.outputJson(bookJsonFile, json, {
     spaces: 2,
   })
+
+  debug('book id = %s url = %s', bookId, bookReadUrl)
+  debug('downloaded to %s', bookJsonFile)
+
   await browser.close()
 }

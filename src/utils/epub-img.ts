@@ -8,6 +8,7 @@ import dl from 'dl-vampire'
 import sharp from 'sharp'
 import fse from 'fs-extra'
 import Book from './Book'
+import ms from 'ms'
 
 const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
@@ -121,7 +122,15 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
 
       // download
       try {
-        await dl({ url: src, file })
+        await dl({
+          url: src,
+          file,
+          // 重试3次, 每次超时 40s
+          retry: {
+            timeout: ms('40s'),
+            times: 3,
+          },
+        })
       } catch (e) {
         // 例如 https://res.weread.qq.com/wrepub/web/855825/copyright.jpg
         if (e?.statusCode === 404) {

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import path from 'path'
-import _, { trimStart, trimEnd } from 'lodash'
-import JSZip, { InputType, JSZipFileOptions } from 'jszip'
 import fse from 'fs-extra'
-import { Data, APP_ROOT } from './common'
-import { FileItem, FileItemFields } from './EpubModel'
 import globby from 'globby'
+import JSZip, { InputType, JSZipFileOptions } from 'jszip'
+import _, { trimEnd } from 'lodash'
+import path from 'path'
+import { BOOKS_DIR, Data } from './common'
+import { FileItem, FileItemFields } from './EpubModel'
 
 export type NavItem = {
   id: string
@@ -55,7 +55,7 @@ export default class Book {
   }
 
   get bookDir() {
-    return path.join(APP_ROOT, `data/book/${this.bookId}/`)
+    return path.join(BOOKS_DIR, this.bookId)
   }
 
   get coverUrl(): string {

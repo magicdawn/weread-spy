@@ -1,12 +1,8 @@
-import pptr from 'puppeteer'
 import path from 'path'
-import envPaths from 'env-paths'
-import { isPkg, execDir, PROJECT_ROOT } from './common'
+import pptr from 'puppeteer'
+import { APP_SUP_DIR } from './common'
 
-const appCacheDir = envPaths('weread-spy', { suffix: '' }).cache
-const userDataDir = isPkg
-  ? path.join(appCacheDir, 'pptr-data')
-  : path.join(PROJECT_ROOT, 'data/pptr-data')
+const userDataDir = path.join(APP_SUP_DIR, 'pptr-data')
 
 export async function getBrowser() {
   const browser = await pptr.launch({
@@ -14,9 +10,6 @@ export async function getBrowser() {
     devtools: false,
     userDataDir,
     defaultViewport: null,
-    executablePath: isPkg
-      ? path.join(execDir, 'puppeteer/mac-800071/chrome-mac/Chromium.app/Contents/MacOS/Chromium')
-      : undefined,
     ignoreDefaultArgs: ['--enable-automation'],
   })
 

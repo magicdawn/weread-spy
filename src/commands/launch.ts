@@ -3,7 +3,7 @@ import { getBrowser } from '../utils/pptr'
 
 export default class extends Command {
   static usage = Command.Usage({
-    description: 'launch pptr',
+    description: '单纯启动内置的 puppeteer 浏览器',
   })
 
   static paths = [['launch']]

@@ -9,28 +9,25 @@
     https://github.com/danburzo/percollate/blob/master/index.js#L516
  */
 
+import filenamify from 'filenamify'
+import fs from 'fs-extra'
+import nunjucks from 'nunjucks'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { pipeline } from 'stream'
-import fs from 'fs-extra'
-import nunjucks from 'nunjucks'
-import filenamify from 'filenamify'
-import debugFactory from 'debug'
-import { Data, APP_ROOT, PROJECT_ROOT } from './common'
-import getImgSrcInfo from './epub-img'
-import { FileItem } from './EpubModel'
 import Book from './Book'
+import { baseDebug, BOOKS_DIR, Data, PROJECT_ROOT } from './common'
+import getImgSrcInfo from './epub-img'
 import epubcheck from './epubcheck'
+import { FileItem } from './EpubModel'
 
 // worker
-import { createWorkers } from './processContent/index.main'
 import mapOnWorker from './mapOnWorker'
+import { createWorkers } from './processContent/index.main'
 
 // this thread
-import pmap from 'promise.map'
-import processContent from './processContent'
 
-const debug = debugFactory('weread-spy:utils:epub')
+const debug = baseDebug.extend('utils:epub')
 
 export async function gen({
   epubFile,
@@ -245,27 +242,31 @@ export async function gen({
   })
 }
 
-function getInfo(id: string) {
-  const data = fs.readJsonSync(path.join(APP_ROOT, `data/book/${id}.json`))
+function getInfo(id: string, dir: string) {
+  const data = fs.readJsonSync(path.join(BOOKS_DIR, `${id}.json`))
+
   let filename: string
   filename = (data as Data).startInfo.bookInfo.title
   filename = filenamify(filename)
   filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）
-  const file = path.join(APP_ROOT, `data/book/${filename}.epub`)
+  const file = path.join(dir, `${filename}.epub`)
 
   return { data, file }
 }
 
-export async function genEpubFor(id: string, clean: boolean) {
-  const { data, file } = getInfo(id)
+export async function genEpubFor(id: string, dir: string, clean: boolean) {
+  const { data, file } = getInfo(id, dir)
   await gen({
     epubFile: file,
     data,
     clean,
   })
+  debug('epub created: %s', file)
+  return file
 }
 
-export async function checkEpub(id: string) {
-  const { file } = getInfo(id)
+export async function checkEpub(id: string, dir: string) {
+  const { file } = getInfo(id, dir)
   epubcheck(file)
+  return file
 }

@@ -1,5 +1,5 @@
-import globby from 'globby'
 import { Command, Option } from 'clipanion'
+import globby from 'globby'
 import epubcheck from '../utils/epubcheck'
 
 export default class CheckCommand extends Command {
