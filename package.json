@@ -113,5 +113,8 @@
     "*.{js,jsx,ts,tsx,less,md}": [
       "prettier --write"
     ]
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }
