@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import filenamify from 'filenamify'
 import fse from 'fs-extra'
 import globby from 'globby'
 import JSZip, { InputType, JSZipFileOptions } from 'jszip'
 import _, { trimEnd } from 'lodash'
 import path from 'path'
 import { BOOKS_DIR, Data } from '../common'
-import { filenamify } from '../libs'
 import { FileItem, FileItemFields } from './EpubModel'
 
 export type NavItem = {

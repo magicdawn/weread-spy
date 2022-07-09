@@ -1,5 +1,4 @@
-import filenamify from 'filenamify'
-import { outputJSON, readJSON, pathExists } from 'fs-extra'
+import { outputJSON, pathExists, readJSON } from 'fs-extra'
 import path from 'path'
 import { BOOKS_DIR } from './index'
 
