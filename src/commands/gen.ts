@@ -1,5 +1,5 @@
 import { Command, Option } from 'clipanion'
-import fse from 'fs-extra'
+import path from 'path'
 import { currentBooks } from '../common/books-map'
 import { checkEpub, genEpubFor } from '../utils/epub'
 
@@ -28,8 +28,8 @@ export default class extends Command {
   })
 
   async execute() {
-    const { url, clean, id } = this
-    main({ url, clean: Boolean(clean), id })
+    const { url, clean, id, dir } = this
+    main({ url, clean: Boolean(clean), id, dir })
   }
 }
 
@@ -58,7 +58,9 @@ export async function main({
     return
   }
 
-  dir = dir || process.cwd()
+  // normalize
+  dir = path.resolve(dir || process.cwd())
+
   await genEpubFor(bookId, dir, clean)
   return await checkEpub(bookId, dir)
 }

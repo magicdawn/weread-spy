@@ -1,3 +1,4 @@
+import filenamify from 'filenamify'
 import { outputJSON, readJSON, pathExists } from 'fs-extra'
 import path from 'path'
 import { BOOKS_DIR } from './index'
@@ -46,4 +47,10 @@ export async function addBook(item: BookItem) {
   list.push(item)
   currentBooks = list
   save()
+}
+
+export async function queryBook(query: Partial<BookItem>) {
+  await load()
+  const item = currentBooks.find((item) => Object.keys(query).every((k) => item[k] === query[k]))
+  return item
 }

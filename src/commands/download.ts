@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Command, Option } from 'clipanion'
+import filenamify from 'filenamify'
 import fse from 'fs-extra'
 import path from 'path'
 import pptr from 'puppeteer'
@@ -142,8 +143,11 @@ export async function main(
     infos,
   }
 
-  const { bookId } = startInfo
-  const bookJsonFile = path.join(BOOKS_DIR, `${bookId}.json`)
+  const {
+    bookId,
+    bookInfo: { title },
+  } = startInfo
+  const bookJsonFile = path.join(BOOKS_DIR, filenamify(`${bookId}-${title}.json`))
   await fse.outputJson(bookJsonFile, json, {
     spaces: 2,
   })

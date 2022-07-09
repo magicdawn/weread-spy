@@ -5,6 +5,7 @@ import JSZip, { InputType, JSZipFileOptions } from 'jszip'
 import _, { trimEnd } from 'lodash'
 import path from 'path'
 import { BOOKS_DIR, Data } from '../common'
+import { filenamify } from '../libs'
 import { FileItem, FileItemFields } from './EpubModel'
 
 export type NavItem = {
@@ -53,9 +54,11 @@ export default class Book {
   get bookId() {
     return this.data.startInfo.bookId
   }
-
+  get bookTitle() {
+    return this.data.startInfo.bookInfo.title
+  }
   get bookDir() {
-    return path.join(BOOKS_DIR, this.bookId)
+    return path.join(BOOKS_DIR, filenamify(this.bookId + '-' + this.bookTitle))
   }
 
   get coverUrl(): string {

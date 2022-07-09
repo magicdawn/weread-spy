@@ -10,7 +10,7 @@
  */
 
 import filenamify from 'filenamify'
-import fs from 'fs-extra'
+import fs, { ensureDir } from 'fs-extra'
 import nunjucks from 'nunjucks'
 import path from 'path'
 import { performance } from 'perf_hooks'
@@ -24,6 +24,7 @@ import { FileItem } from './EpubModel'
 // worker
 import mapOnWorker from './mapOnWorker'
 import { createWorkers } from './processContent/index.main'
+import { queryBook } from '../common/books-map'
 
 // this thread
 
@@ -242,31 +243,35 @@ export async function gen({
   })
 }
 
-function getInfo(id: string, dir: string) {
-  const data = fs.readJsonSync(path.join(BOOKS_DIR, `${id}.json`))
+async function getInfo(id: string, dir: string) {
+  let { title = '' } = (await queryBook({ id })) || {}
+  title = filenamify(title)
 
-  let filename: string
-  filename = (data as Data).startInfo.bookInfo.title
-  filename = filenamify(filename)
+  const data = fs.readJsonSync(path.join(BOOKS_DIR, `${id}-${title}.json`))
+
+  let filename = `${title}.epub`
   filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）
-  const file = path.join(dir, `${filename}.epub`)
+  const file = path.join(dir, filename)
 
   return { data, file }
 }
 
 export async function genEpubFor(id: string, dir: string, clean: boolean) {
-  const { data, file } = getInfo(id, dir)
+  const { data, file } = await getInfo(id, dir)
+
+  await ensureDir(dir)
   await gen({
     epubFile: file,
     data,
     clean,
   })
+
   debug('epub created: %s', file)
   return file
 }
 
 export async function checkEpub(id: string, dir: string) {
-  const { file } = getInfo(id, dir)
+  const { file } = await getInfo(id, dir)
   epubcheck(file)
   return file
 }
