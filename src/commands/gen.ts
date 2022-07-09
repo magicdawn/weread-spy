@@ -1,6 +1,6 @@
 import { Command, Option } from 'clipanion'
 import fse from 'fs-extra'
-import { BOOKS_MAP_FILE } from '../utils/common'
+import { currentBooks } from '../common/books-map'
 import { checkEpub, genEpubFor } from '../utils/epub'
 
 export default class extends Command {
@@ -44,19 +44,13 @@ export async function main({
   id?: string
   dir?: string
 }) {
-  let map: Record<string, any>
-  try {
-    map = await fse.readJsonSync(BOOKS_MAP_FILE)
-  } catch (error) {
-    map = {}
-  }
-
-  // decide book id
-  let bookId = ''
+  let bookId: string | undefined
   if (id) {
     bookId = id
-  } else if (url) {
-    ;({ bookId } = map[url] || {})
+  }
+  // url => id
+  else if (url) {
+    bookId = currentBooks.find((x) => x.url === url)?.id
   }
 
   if (!bookId) {

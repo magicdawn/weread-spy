@@ -4,7 +4,7 @@ import globby from 'globby'
 import JSZip, { InputType, JSZipFileOptions } from 'jszip'
 import _, { trimEnd } from 'lodash'
 import path from 'path'
-import { BOOKS_DIR, Data } from './common'
+import { BOOKS_DIR, Data } from '../common'
 import { FileItem, FileItemFields } from './EpubModel'
 
 export type NavItem = {

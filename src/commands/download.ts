@@ -4,7 +4,8 @@ import { Command, Option } from 'clipanion'
 import fse from 'fs-extra'
 import path from 'path'
 import pptr from 'puppeteer'
-import { baseDebug, BOOKS_DIR, BOOKS_MAP_FILE } from '../utils/common'
+import { baseDebug, BOOKS_DIR } from '../common'
+import { addBook } from '../common/books-map'
 import { getBrowser } from '../utils/pptr'
 
 const debug = baseDebug.extend('download')
@@ -91,14 +92,7 @@ export async function main(
   }
 
   // save map
-  let map: any
-  try {
-    map = fse.readJsonSync(BOOKS_MAP_FILE)
-  } catch (error) {
-    // noop
-  }
-  map = { ...map, [bookReadUrl]: { bookId: startInfo.bookId, title: startInfo.bookInfo.title } }
-  fse.outputJsonSync(BOOKS_MAP_FILE, map, { spaces: 2 })
+  await addBook({ id: startInfo.bookId, title: startInfo.bookInfo.title, url: bookReadUrl })
 
   const changeChapter = async (uid: number) => {
     await page.$eval(

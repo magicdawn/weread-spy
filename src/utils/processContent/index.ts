@@ -6,7 +6,7 @@ import njk from 'nunjucks'
 import prettier from 'prettier'
 import _ from 'lodash'
 import debugFactory from 'debug'
-import { Info } from '../common'
+import { Info } from '../../common'
 import { ImgSrcInfo } from '../epub-img'
 
 const debug = debugFactory('weread-spy:utils:processContent')
