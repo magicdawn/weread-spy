@@ -6,6 +6,12 @@
 [![npm downloads](https://img.shields.io/npm/dm/weread-spy.svg?style=flat-square)](https://www.npmjs.com/package/weread-spy)
 [![npm license](https://img.shields.io/npm/l/weread-spy.svg?style=flat-square)](http://magicdawn.mit-license.org)
 
+## 声明
+
+本项目仅供技术研究使用, 请勿用于商业用途!<br/>
+本项目仅供技术研究使用, 请勿用于商业用途!<br/>
+本项目仅供技术研究使用, 请勿用于商业用途!<br/>
+
 ## 安装
 
 ```sh
