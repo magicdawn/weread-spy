@@ -26,17 +26,26 @@ $ pnpm add weread-spy -g
 
 这样就可以使用 `weread-spy` 命令了
 
-### 一站式操作 `weread-spy one`
+## 一站式操作 `weread-spy one`
 
 - 运行此命令, 会自动打开 puppeteer 浏览器
 - 扫码登录
 - 浏览自己想下载的书, 返回命令行. 监控到 url 像是一本书, 输入 `y` 开始生成
+
+### 注意事项
+
 - 需要安装 `Java`, epub check 依赖 java, 可以认为是 ePub 文件的 lint 工具
-- 生成 epub 文件在当前目录下, 或者使用 `weread-spy one -d some-dir` 知道输出目录
+- 数据文件在 `~/Library/Appication Support/weread-spy/` 目录下
+- 生成 epub 文件在当前目录下, 或者使用 `weread-spy one -d some-dir` 指定输出目录
 
-数据文件在 `~/Library/Appication Support/weread-spy/` 目录下
+#### Options
 
-### 其他分步的命令
+| flag         | desc                   | default |
+| ------------ | ---------------------- | ------- |
+| `-d,--dir`   | 最终 ePub 文件输出目录 | pwd     |
+| `--interval` | 切换章节间隔, 毫秒     | 0       |
+
+## 其他分步的命令
 
 - `weread-spy dl -u <url>` 下载电子书信息
 - `weread-spy gen -u <url>` 根据下载的信息, 生成电子书
