@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Command, Option } from 'clipanion'
+import delay from 'delay'
 import filenamify from 'filenamify'
 import fse from 'fs-extra'
 import path from 'path'
@@ -18,41 +20,31 @@ export default class DownloadCommand extends Command {
 
   static paths = [['dl'], ['download']]
 
-  url?: string = Option.String('-u,--url', {
+  url: string = Option.String('-u,--url', {
     description: 'book url, e.g(https://weread.qq.com/web/reader/9f232de07184869c9f2cc73)',
+    required: true,
   })
 
-  justLaunch?: boolean = Option.Boolean('--just-launch', {})
+  interval?: string = Option.String('--interval', {
+    description: '数字, 切换章节间隔, 单位毫秒',
+  })
 
   async execute() {
-    const url = this.url
-    const justLaunch = this.justLaunch
-
-    if (!justLaunch || !url) {
-      return console.error('url is required')
-    }
-
-    main(url, justLaunch)
+    const { url, interval } = this
+    main(url, { interval })
   }
 }
 
 export async function main(
   bookReadUrl: string,
-  justLaunch = false,
-  options: { page?: pptr.Page; browser?: pptr.Browser } = {}
+  options: { page?: pptr.Page; browser?: pptr.Browser; interval?: number | string } = {}
 ) {
-  let browser: pptr.Browser
-  let page: pptr.Page
-  if (options.page && options.browser) {
-    ;({ browser, page } = options)
-  } else {
-    ;({ browser, page } = await getBrowser())
+  // create if not provided
+  if (!options.page || !options.browser) {
+    Object.assign(options, await getBrowser())
   }
-
-  // 只是启动浏览器
-  if (justLaunch) {
-    return
-  }
+  const browser = options.browser!
+  const page = options.page!
 
   await page.goto(bookReadUrl)
 
@@ -70,11 +62,7 @@ export async function main(
 
   await waitCondition((el) => {
     const state = (el as any).__vue__.$store.state
-    if (state?.reader?.chapterContentState === 'DONE') {
-      return true
-    } else {
-      return false
-    }
+    return state?.reader?.chapterContentState === 'DONE'
   })
 
   const state = await page.$eval('#app', (el) => {
@@ -105,12 +93,32 @@ export async function main(
     )
   }
 
+  let usingInterval: number | undefined = undefined
+  if (options.interval) {
+    if (typeof options.interval === 'number') {
+      usingInterval = options.interval
+    }
+    if (typeof options.interval === 'string') {
+      usingInterval = Number(options.interval)
+      if (isNaN(usingInterval)) {
+        throw new Error('expect a number for --interval')
+      }
+    }
+  }
+  if (usingInterval) {
+    debug('切换章节间隔 %s ms', usingInterval)
+  }
+
   const infos: any[] = []
-  for (const c of startInfo.chapterInfos) {
+  for (const [index, c] of startInfo.chapterInfos.entries()) {
     const { chapterUid } = c
 
-    // console.log('before-changeChapter %s', chapterUid)
+    // delay before change chapter
+    if (index > 0 && usingInterval) {
+      await delay(usingInterval)
+    }
     await changeChapter(chapterUid)
+
     await waitCondition((el, id) => {
       const state = (el as any).__vue__.$store.state
       const currentChapterId = state.reader.currentChapter.chapterUid

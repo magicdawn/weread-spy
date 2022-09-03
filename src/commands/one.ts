@@ -40,6 +40,10 @@ export default class extends Command {
     description: 'epub 文件输出目录, 默认当前文件夹',
   })
 
+  interval?: string = Option.String('--interval', {
+    description: '数字, 切换章节间隔, 单位毫秒',
+  })
+
   async execute() {
     const { browser, page } = await getBrowser()
 
@@ -79,7 +83,7 @@ export default class extends Command {
         page.off('framenavigated', handler)
 
         // 确认下载
-        decideDownload(page, browser, this.dir)
+        decideDownload(page, browser, this.dir, this.interval)
       }
     }
 
@@ -87,7 +91,12 @@ export default class extends Command {
   }
 }
 
-async function decideDownload(page: pptr.Page, browser: pptr.Browser, dir?: string) {
+async function decideDownload(
+  page: pptr.Page,
+  browser: pptr.Browser,
+  dir?: string,
+  interval?: string
+) {
   const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {
     let ok = false
     while (!ok) {
@@ -162,7 +171,7 @@ async function decideDownload(page: pptr.Page, browser: pptr.Browser, dir?: stri
   const bookCoverUrl = page.url()
 
   // download
-  await download(bookCoverUrl, false, { page, browser })
+  await download(bookCoverUrl, { page, browser, interval })
   debug('-'.repeat(20), 'download complete', '-'.repeat(20))
 
   // generate
