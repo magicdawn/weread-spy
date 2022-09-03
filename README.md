@@ -26,6 +26,11 @@ $ pnpm add weread-spy -g
 
 这样就可以使用 `weread-spy` 命令了
 
+## epub 规范 & 阅读器
+
+- 本项目使用 ePub v3 规范, 且使用 epubcheck lint, 如果有 lint 报错的地方, 请添加 issue
+- ePub 阅读器推荐 `Koodo Reader` or `Apple Books`
+
 ## 一站式操作 `weread-spy one`
 
 - 运行此命令, 会自动打开 puppeteer 浏览器
