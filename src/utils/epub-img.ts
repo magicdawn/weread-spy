@@ -1,14 +1,14 @@
 import { createHash } from 'crypto'
-import path from 'path'
 import debugFactory from 'debug'
-import { getImgSrcs } from './processContent'
-import pmap from 'promise.map'
-import mime from 'mime'
 import dl from 'dl-vampire'
-import sharp from 'sharp'
 import fse from 'fs-extra'
-import Book from './Book'
+import mime from 'mime'
 import ms from 'ms'
+import path from 'path'
+import pmap from 'promise.map'
+import sharp from 'sharp'
+import Book from './Book.js'
+import { getImgSrcs } from './processContent/index.js'
 
 const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')
@@ -114,7 +114,7 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
     }
   }
 
-  await pmap(
+  await pmap.default(
     imgSrcs,
     async (src) => {
       const { localFile } = imgSrcInfo[src]
@@ -122,7 +122,7 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
 
       // download
       try {
-        await dl({
+        await dl.default({
           url: src,
           file,
           // 重试3次, 每次超时 40s

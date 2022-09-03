@@ -1,6 +1,8 @@
-import { outputJSON, pathExists, readJSON } from 'fs-extra'
+import fse from 'fs-extra'
 import path from 'path'
-import { BOOKS_DIR } from './index'
+import { BOOKS_DIR } from './index.js'
+
+const { outputJSON, pathExists, readJSON } = fse
 
 // v1: json = { [id]: {title,id,url} }
 // v2: json = [ {id, title, url} ]

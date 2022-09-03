@@ -1,6 +1,6 @@
 import path from 'path'
 import pptr from 'puppeteer'
-import { APP_SUP_DIR } from '../common'
+import { APP_SUP_DIR } from '../common/index.js'
 
 const userDataDir = path.join(APP_SUP_DIR, 'pptr-data')
 

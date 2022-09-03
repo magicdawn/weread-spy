@@ -6,10 +6,13 @@ import njk from 'nunjucks'
 import prettier from 'prettier'
 import _ from 'lodash'
 import debugFactory from 'debug'
-import { Info } from '../../common'
-import { ImgSrcInfo } from '../epub-img'
+import { Info } from '../../common/index.js'
+import { ImgSrcInfo } from '../epub-img.js'
+import { createRequire } from 'module'
 
 const debug = debugFactory('weread-spy:utils:processContent')
+
+const require = createRequire(import.meta.url)
 const prettierConfig = require('@magicdawn/prettier-config') as prettier.Options
 
 type TransformImgSrc = (src: string) => string

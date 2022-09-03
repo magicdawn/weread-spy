@@ -1,17 +1,19 @@
 import debugFactory from 'debug'
 import { Builtins, Cli } from 'clipanion'
 
-import GenEpubCommand from './commands/gen'
-import LaunchCommand from './commands/launch'
-import CheckCommand from './commands/check'
-import DownloadCommand from './commands/download'
-import OneCommand from './commands/one'
+import GenEpubCommand from './commands/gen.js'
+import LaunchCommand from './commands/launch.js'
+import CheckCommand from './commands/check.js'
+import DownloadCommand from './commands/download.js'
+import OneCommand from './commands/one.js'
+import { createRequire } from 'module'
 
 // enable logs
 if (!process.env.DEBUG) {
   debugFactory.enable('weread-spy:*')
 }
 
+const require = createRequire(import.meta.url)
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json')

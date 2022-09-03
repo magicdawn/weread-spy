@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import filenamify from 'filenamify'
 import fse from 'fs-extra'
-import globby from 'globby'
+import { globby } from 'globby'
 import JSZip, { InputType, JSZipFileOptions } from 'jszip'
-import _, { trimEnd } from 'lodash'
+import _ from 'lodash'
 import path from 'path'
-import { BOOKS_DIR, Data } from '../common'
-import { FileItem, FileItemFields } from './EpubModel'
+import { BOOKS_DIR, Data } from '../common/index.js'
+import { FileItem, FileItemFields } from './EpubModel/index.js'
+
+const { trimEnd } = _
 
 export type NavItem = {
   id: string

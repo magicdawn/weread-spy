@@ -10,24 +10,25 @@
  */
 
 import filenamify from 'filenamify'
-import fs, { ensureDir } from 'fs-extra'
+import fse from 'fs-extra'
 import nunjucks from 'nunjucks'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { pipeline } from 'stream'
-import Book from './Book'
-import { baseDebug, BOOKS_DIR, Data, PROJECT_ROOT } from '../common'
-import getImgSrcInfo from './epub-img'
-import epubcheck from './epubcheck'
-import { FileItem } from './EpubModel'
+import { baseDebug, BOOKS_DIR, Data, PROJECT_ROOT } from '../common/index.js'
+import Book from './Book.js'
+import getImgSrcInfo from './epub-img.js'
+import epubcheck from './epubcheck.js'
+import { FileItem } from './EpubModel/index.js'
 
 // worker
-import mapOnWorker from './mapOnWorker'
-import { createWorkers } from './processContent/index.main'
-import { queryBook } from '../common/books-map'
+import { queryBook } from '../common/books-map.js'
+import mapOnWorker from './mapOnWorker.js'
+import { createWorkers } from './processContent/index.main.js'
 
 // this thread
 
+const { ensureDir } = fse
 const debug = baseDebug.extend('utils:epub')
 
 export async function gen({
@@ -52,10 +53,10 @@ export async function gen({
   await book.addZipFolder('META-INF', path.join(template_base, 'META-INF'))
 
   const [navTemplate, tocTemplate, opfTemplate, coverTemplate] = await Promise.all([
-    fs.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
-    fs.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8'),
-    fs.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8'),
-    fs.readFile(path.join(template_base, 'OEBPS/cover.xhtml'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/cover.xhtml'), 'utf8'),
   ])
 
   // 章节 html
@@ -91,7 +92,7 @@ export async function gen({
   // extra css
   const extraCss: string[] = []
   const customCssFile = path.join(bookDir, 'custom.css')
-  if (await fs.pathExists(customCssFile)) {
+  if (await fse.pathExists(customCssFile)) {
     extraCss.push('custom.css')
     addFile({ filename: 'custom.css', filepath: customCssFile })
   }
@@ -215,7 +216,7 @@ export async function gen({
     if (typeof f.content !== 'undefined' && f.content !== null) {
       content = f.content
     } else if (f.filepath) {
-      content = fs.readFileSync(f.filepath)
+      content = fse.readFileSync(f.filepath)
     } else {
       continue
     }
@@ -231,7 +232,7 @@ export async function gen({
     compression: 'DEFLATE',
     compressionOptions: { level: 9 },
   })
-  const output = fs.createWriteStream(epubFile)
+  const output = fse.createWriteStream(epubFile)
   return new Promise((resolve, reject) => {
     pipeline(stream, output, (err) => {
       if (err) {
@@ -247,7 +248,7 @@ async function getInfo(id: string, dir: string) {
   let { title = '' } = (await queryBook({ id })) || {}
   title = filenamify(title)
 
-  const data = fs.readJsonSync(path.join(BOOKS_DIR, `${id}-${title}.json`))
+  const data = fse.readJsonSync(path.join(BOOKS_DIR, `${id}-${title}.json`))
 
   let filename = `${title}.epub`
   filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）

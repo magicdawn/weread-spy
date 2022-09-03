@@ -1,7 +1,7 @@
 import d from 'debug'
 import envPaths from 'env-paths'
-import { outputJSON, pathExists, readJSON } from 'fs-extra'
-import path from 'path'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url'
 
 import type exampleStartInfo from '../utils/processContent/example-start-info.json'
 export type Info = typeof exampleStartInfo
@@ -15,6 +15,8 @@ export interface Data {
   infos: Info[]
 }
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 export const PROJECT_ROOT = path.join(__dirname, '../../')
 
 /**
