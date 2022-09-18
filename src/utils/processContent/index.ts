@@ -233,8 +233,16 @@ function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
 
 function collectImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
   if (el.type === 'tag' && el.tagName?.toLowerCase?.() === 'img') {
-    const src = $(el).data('src') as string
-    ;(ctx as string[]).push(src)
+    const src = ($(el).data('src') as string | undefined) || $(el).attr('src')
+
+    if (!src) {
+      // $(el)
+      debugger
+    }
+
+    if (src) {
+      ;(ctx as string[]).push(src)
+    }
   }
 
   // style="background-image:url(https://res.weread.qq.com/wrepub/web/910419/copyright.jpg);"
@@ -244,6 +252,10 @@ function collectImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
     if (m?.[1]) {
       const src = m[1]
       $(el).attr('data-bg-img', src) // mark, has no effect, the result html will be abondoned
+
+      if (!src) {
+        debugger
+      }
       ;(ctx as string[]).push(src)
     }
   }
@@ -259,15 +271,26 @@ function fixImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
     // remove alt
     $el.removeAttr('alt')
 
-    // transform
+    // transform & change src
     const newSrc = ctx.transformImgSrc(src)
     ctx.imgs.push({
       src,
       newSrc,
     })
-
-    // change src
     $el.attr('src', newSrc)
+
+    // fix width & style
+    // <img src="imgs/epub_40870013_2.png" data-src="https://res.weread.qq.com/wrepub/epub_40870013_2" style="width: 15%" width="15%"/>
+    // ERROR(RSC-005): ./CSS新世界.epub/OEBPS/chapter-6.xhtml(20,181): Error while parsing file: value of attribute "width" is invalid; must be an integer
+    const width = $(el).attr('width')
+    const height = $(el).attr('height')
+    if (width && isNaN(Number(width))) {
+      $(el).css('width', width).removeAttr('width')
+    }
+    if (height && isNaN(Number(height))) {
+      $(el).css('height', height).removeAttr('height')
+    }
+
     return
   }
 
