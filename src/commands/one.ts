@@ -1,7 +1,6 @@
 import { Command, Option } from 'clipanion'
 import inquirer from 'inquirer'
-import path from 'path'
-import pptr from 'puppeteer'
+import * as pptr from 'puppeteer'
 import URI from 'urijs'
 import { baseDebug } from '../common'
 import { getBrowser } from '../utils/pptr'
