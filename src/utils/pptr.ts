@@ -1,8 +1,16 @@
 import path from 'path'
 import pptr from 'puppeteer'
-import { APP_SUP_DIR } from '../common'
+import { RequestInterceptionManager } from 'puppeteer-intercept-and-modify-requests'
+import { APP_SUP_DIR, baseDebug } from '../common'
 
+const debug = baseDebug.extend('pptr')
 const userDataDir = path.join(APP_SUP_DIR, 'pptr-data')
+
+function processAppJs(js: string) {
+  // 'yes' === _0x16452a['env']['VUE_DISMISS_DEVTOOLS'] && _0x1be68e && (_0x1be68e['__vue__'] = null),
+  // 'yes' === _0x16452a['env'][_0x3744('0x22b')] && _0x5ad1f7['$el'] && (console['log']('__vue__'),
+  return js.replace(/\'yes\' *?=== *?([_\w]+\['env'\])/g, `'yes' !== $1`)
+}
 
 export async function getBrowser() {
   const browser = await pptr.launch({
@@ -23,6 +31,22 @@ export async function getBrowser() {
 
   const page = await browser.newPage()
   await page.goto('https://weread.qq.com/')
+
+  // disable cache
+  await page.setCacheEnabled(false)
+
+  // intercept
+  const client = await page.target().createCDPSession()
+  const interceptManager = new RequestInterceptionManager(client)
+  await interceptManager.intercept({
+    urlPattern: `*/app.*.js`,
+    resourceType: 'Script',
+    modifyResponse({ body }) {
+      debug('current enable __vue__ prop attach')
+      body = processAppJs(body)
+      return { body: body }
+    },
+  })
 
   const loginBtn = '.navBar_link_Login'
   const logined = await page.$$eval(loginBtn, (els) => els.length === 0)
