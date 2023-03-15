@@ -52,7 +52,7 @@ export default function processContent(info: Info, options: ProcessContentOption
   // debug($.xml().trim())
 
   // combine span
-  traverse($.root()[0], $, removeUnusedSpan)
+  traverse($.root()[0], $, combineTextSpan)
   // debug('removeUnusedSpan complete')
   // debug($.xml().trim())
 
@@ -179,7 +179,7 @@ function removeDataAttr(el: $Element, $: CheerioAPI): OnNodeResult {
   }
 }
 
-function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
+function combineTextSpan(el: $Element, $: CheerioAPI): OnNodeResult {
   if (el.type !== 'tag') return
   if (!el.childNodes?.length) {
     return
