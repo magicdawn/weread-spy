@@ -14,10 +14,16 @@ type ProcessContent = typeof processContent
  * ts 编译后,
  * ./index.worker.ts -> dist/index.worker.js
  * ./index.worker.js 不参与 ts 编译
+ *
+ * esbuild bundle 后
+ *
  */
 
 export function createWorker() {
-  const worker = new Worker(__dirname + '/index.worker.js')
+  const workerFile = process.env.ESBUILD_BUNDLE
+    ? __dirname + '/processContent.worker.js'
+    : __dirname + '/index.worker.js'
+  const worker = new Worker(workerFile)
   const api = Comlink.wrap(nodeEndpoint(worker)) as Comlink.Remote<{
     processContent: ProcessContent
   }>

@@ -1,12 +1,12 @@
 import d from 'debug'
 import envPaths from 'env-paths'
-import { outputJSON, pathExists, readJSON } from 'fs-extra'
 import path from 'path'
+import { sync as pkgUpSync } from 'pkg-up'
 
 import type exampleStartInfo from '../utils/processContent/example-start-info.json'
 export type Info = typeof exampleStartInfo
 export type BookInfo = typeof exampleStartInfo.bookInfo
-export type ChapterInfo = typeof exampleStartInfo.chapterInfos[0]
+export type ChapterInfo = (typeof exampleStartInfo.chapterInfos)[0]
 
 export const baseDebug = d('weread-spy')
 
@@ -15,7 +15,11 @@ export interface Data {
   infos: Info[]
 }
 
-export const PROJECT_ROOT = path.join(__dirname, '../../')
+const closetPkgJson = pkgUpSync({ cwd: __dirname })
+if (!closetPkgJson) {
+  throw new Error('package.json not found')
+}
+export const PROJECT_ROOT = path.dirname(closetPkgJson)
 
 /**
  * 通用的数据目录
