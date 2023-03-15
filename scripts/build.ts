@@ -21,3 +21,5 @@ esbuild.buildSync({
     'process.env.ESBUILD_BUNDLE': 'true',
   },
 })
+
+console.log('[bundle]: success')

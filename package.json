@@ -8,19 +8,16 @@
     "weread-spy": "bin/weread-spy.js"
   },
   "files": [
-    "assets",
     "bin/weread-spy.js",
-    "lib",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE",
-    "package.json"
+    "dist",
+    "assets",
+    "CHANGELOG.md"
   ],
   "bugs": {
     "url": "https://github.com/magicdawn/weread-spy/issues"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "homepage": "https://github.com/magicdawn/weread-spy#readme",
   "keywords": [
@@ -30,7 +27,8 @@
   "scripts": {
     "prepare": "husky install",
     "dev": "tsc -w --incremental",
-    "build": "rm -rf lib; rm tsconfig.tsbuildinfo; tsc",
+    "build:tsc": "rm -rf lib; rm tsconfig.tsbuildinfo; tsc",
+    "build": "./scripts/build.ts",
     "gen-readme": "swig render ./readme/readme.md > README.md && prettier --write README.md",
     "test": "mocha",
     "test-cover": "nyc --reporter=lcov --reporter=text mocha",
