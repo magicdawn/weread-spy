@@ -1,0 +1,30 @@
+type InterceptionEvent = Parameters<NonNullable<Interception['modifyResponse']>>[0]['event']
+
+function processJsFile(js: string, event: InterceptionEvent) {
+  const url = event.request.url
+  const pathname = new URL(url).pathname
+  const filename = path.basename(pathname)
+
+  // app.*.js
+  if (/^app\.\w+\.js$/.test(filename)) {
+    return processAppJs(js)
+  }
+
+  // 期望
+  if (!/^\d+\.\w+\.js$/i.test(filename)) return js
+
+  // vuex
+  // this['commit'] = function(_0xe59d72, _0x31227c, _0x3aa954) {
+  //     return _0x5068e8['call'](_0x43325a, _0xe59d72, _0x31227c, _0x3aa954);
+  // }
+
+  const matches = Array.from(js.matchAll(/this\['commit'\] *?= *?function\(/g))
+  console.log('file: %s, matches', filename, matches)
+
+  if (matches.length) {
+    debug('current patch vuex store.commit')
+    debugger
+  }
+
+  return js
+}

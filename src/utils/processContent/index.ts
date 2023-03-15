@@ -31,11 +31,19 @@ export default function processContent(info: Info, options: ProcessContentOption
     html = html.join('')
   }
 
+  // extract content from <html><head></head><body>{content}<body></html>
+  {
+    const $ = $load(html, { decodeEntities: false, lowerCaseTags: true })
+    if ($('body').length) {
+      html = $('body').html() || ''
+    }
+  }
+
   // apply templates
   html = applyTemplate({ style: chapterContentStyles, content: html, cssFilenames })
 
   // new $
-  const $ = $load(html, { decodeEntities: false, xmlMode: true, lowerCaseTags: true })
+  const $ = $load(html, { decodeEntities: false, lowerCaseTags: true })
   // debug('cheerio loaded')
 
   // remove all data-xxx
@@ -231,17 +239,27 @@ function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
  * 收集 img src
  */
 
-function collectImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
-  if (el.type === 'tag' && el.tagName?.toLowerCase?.() === 'img') {
-    const src = ($(el).data('src') as string | undefined) || $(el).attr('src')
+const CLASS_FOOTNOTE = 'qqreader-footnote'
 
-    if (!src) {
-      // $(el)
-      debugger
+function collectImgSrc(el: $Element, $: CheerioAPI, ctx: string[]): OnNodeResult {
+  if (el.type === 'tag' && el.tagName?.toLowerCase?.() === 'img') {
+    const $el = $(el)
+
+    // 不处理这种脚注
+    // <img
+    //  data-wr-co=\"5445\"
+    //  alt=\"敲西瓜。日本的小孩在夏天常玩的游戏。小孩蒙着眼，手拿棍子，比赛谁先可以把西瓜敲碎。\"
+    //  class=\"qqreader-footnote\"
+    //  src =\"data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg==\"
+    //  data-src=\"../Images/note.png\"
+    // />
+    if ($el.hasClass(CLASS_FOOTNOTE)) {
+      return
     }
 
+    const src = ($el.data('src') as string | undefined) || $el.attr('src')
     if (src) {
-      ;(ctx as string[]).push(src)
+      ctx.push(src)
     }
   }
 
@@ -252,11 +270,9 @@ function collectImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
     if (m?.[1]) {
       const src = m[1]
       $(el).attr('data-bg-img', src) // mark, has no effect, the result html will be abondoned
-
-      if (!src) {
-        debugger
+      if (src) {
+        ctx.push(src)
       }
-      ;(ctx as string[]).push(src)
     }
   }
 }
@@ -266,12 +282,16 @@ function fixImgSrc(el: $Element, $: CheerioAPI, ctx: any): OnNodeResult {
 
   if (el.tagName?.toLowerCase?.() === 'img') {
     const $el = $(el)
-    const src = $el.data('src')
+
+    if ($el.hasClass(CLASS_FOOTNOTE)) {
+      return
+    }
 
     // remove alt
     $el.removeAttr('alt')
 
     // transform & change src
+    const src = $el.data('src')
     const newSrc = ctx.transformImgSrc(src)
     ctx.imgs.push({
       src,

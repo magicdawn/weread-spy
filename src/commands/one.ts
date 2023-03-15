@@ -1,32 +1,15 @@
 import { Command, Option } from 'clipanion'
 import inquirer from 'inquirer'
+import _ from 'lodash'
 import * as pptr from 'puppeteer'
 import URI from 'urijs'
 import { baseDebug } from '../common'
+import { hookVuexCommit } from '../utils/anti-spider/index'
 import { getBrowser } from '../utils/pptr'
 import { main as download } from './download'
 import { main as gen } from './gen'
 
 const debug = baseDebug.extend('one')
-
-const EXAMPLE_SHELF_BOOK = {
-  bookId: '815123',
-  title: '曾国藩家书',
-  author: '曾国藩',
-  cover: 'https://wfqqreader-1252317822.image.myqcloud.com/cover/123/815123/s_815123.jpg',
-  secret: 1,
-  format: 'epub',
-  soldout: 0,
-  payType: 4097,
-  finished: 1,
-  finishReading: 0,
-  lastChapterIdx: 12,
-  readUpdateTime: 1602417448,
-  updateTime: 1583779409,
-  progress: 0,
-  updated: 0,
-}
-type ShelfBook = typeof EXAMPLE_SHELF_BOOK
 
 export default class extends Command {
   static usage = Command.Usage({
@@ -46,7 +29,6 @@ export default class extends Command {
   async execute() {
     const { browser, page } = await getBrowser()
 
-    // 使用 browser goto book readUrl
     let prompt: any
 
     const handler = async (e: pptr.Frame) => {
@@ -61,16 +43,18 @@ export default class extends Command {
           console.log('')
         }
 
-        console.log('当前浏览链接像是一本书')
-        console.log(pageUrl)
         const title = await page.title()
+        console.log('')
+        console.log('当前浏览链接像是一本书:')
+        console.log('   [url]: %s', pageUrl)
+        console.log(' [title]: %s', title)
 
         // prompt
         prompt = inquirer.prompt([
           {
             type: 'confirm',
             name: 'confirm',
-            message: `书名: ${title}, 是否下载: `,
+            message: `是否下载: `,
           },
         ])
 
@@ -79,14 +63,15 @@ export default class extends Command {
         if (!confirm) return
 
         // 移除 listener
-        page.off('framenavigated', handler)
+        page.off('framenavigated', handlerDebounced)
 
         // 确认下载
         decideDownload(page, browser, this.dir, this.interval)
       }
     }
 
-    page.on('framenavigated', handler)
+    const handlerDebounced = _.debounce(handler, 1000)
+    page.on('framenavigated', handlerDebounced)
   }
 }
 
@@ -122,50 +107,33 @@ async function decideDownload(
     return state
   })
 
-  // want
-  const startInfo = {
-    bookId: state.reader.bookId,
-    bookInfo: state.reader.bookInfo,
-    chapterInfos: state.reader.chapterInfos,
-    chapterContentHtml: state.reader.chapterContentHtml,
-    chapterContentStyles: state.reader.chapterContentStyles,
-    currentChapterId: state.reader.currentChapter.chapterUid,
-  }
-
-  const changeChapter = async (uid: number) => {
-    await page.$eval(
-      '#routerView',
-      (el, uid) => {
-        ;(el as any).__vue__.changeChapter({ chapterUid: uid })
-      },
-      uid
-    )
-  }
-
   const chapterInfos = state.reader.chapterInfos
-
+  // why? 不记得了
+  // second + first
   const firstChapterUid = chapterInfos[0].chapterUid
   const secondChapterUid = chapterInfos[1].chapterUid
 
+  const changeChapter = async (chapterUid: number) => {
+    await page.$eval(
+      '#routerView',
+      (el: any, chapterUid) => {
+        el.__vue__.changeChapter({ chapterUid: chapterUid })
+      },
+      chapterUid
+    )
+    await waitCondition((el: any, id) => {
+      const state = el.__vue__.$store.state
+      const currentChapterId = state.reader.currentChapter.chapterUid
+      const currentState = state?.reader?.chapterContentState
+      console.log({ currentChapterId, currentState, id })
+      return currentChapterId === id && currentState === 'DONE'
+    }, chapterUid)
+  }
+
   // to second
   await changeChapter(secondChapterUid)
-  await waitCondition((el, id) => {
-    const state = (el as any).__vue__.$store.state
-    const currentChapterId = state.reader.currentChapter.chapterUid
-    const currentState = state?.reader?.chapterContentState
-    console.log({ currentChapterId, currentState, id })
-    return currentChapterId === id && currentState === 'DONE'
-  }, secondChapterUid)
-
   // to first
   await changeChapter(firstChapterUid)
-  await waitCondition((el, id) => {
-    const state = (el as any).__vue__.$store.state
-    const currentChapterId = state.reader.currentChapter.chapterUid
-    const currentState = state?.reader?.chapterContentState
-    console.log({ currentChapterId, currentState, id })
-    return currentChapterId === id && currentState === 'DONE'
-  }, firstChapterUid)
 
   const bookCoverUrl = page.url()
 

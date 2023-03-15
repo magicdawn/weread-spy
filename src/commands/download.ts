@@ -65,20 +65,26 @@ export async function main(
     return state?.reader?.chapterContentState === 'DONE'
   })
 
-  const state = await page.$eval('#app', (el) => {
-    const state = (el as any).__vue__.$store.state
-    return state
-  })
+  async function getInfoFromPage() {
+    const { state, chapterContentHtml } = await page.$eval('#app', (el) => {
+      const state = (el as any).__vue__.$store.state
+      const chapterContentHtml = globalThis.__chapterContentHtml__
+      return { state, chapterContentHtml }
+    })
 
-  // want
-  const startInfo = {
-    bookId: state.reader.bookId,
-    bookInfo: state.reader.bookInfo,
-    chapterInfos: state.reader.chapterInfos,
-    chapterContentHtml: state.reader.chapterContentHtml,
-    chapterContentStyles: state.reader.chapterContentStyles,
-    currentChapterId: state.reader.currentChapter.chapterUid,
+    // want
+    const info = {
+      bookId: state.reader.bookId,
+      bookInfo: state.reader.bookInfo,
+      chapterInfos: state.reader.chapterInfos,
+      chapterContentHtml: chapterContentHtml || state.reader.chapterContentHtml,
+      chapterContentStyles: state.reader.chapterContentStyles,
+      currentChapterId: state.reader.currentChapter.chapterUid,
+    }
+    return info
   }
+
+  const startInfo = await getInfoFromPage()
 
   // save map
   await addBook({ id: startInfo.bookId, title: startInfo.bookInfo.title, url: bookReadUrl })
@@ -126,23 +132,10 @@ export async function main(
       console.log({ currentChapterId, currentState, id })
       return currentChapterId === id && currentState === 'DONE'
     }, chapterUid)
-    debug('已收集章节 id=%s', chapterUid)
 
-    const state = await page.$eval('#app', (el) => {
-      const state = (el as any).__vue__.$store.state
-      return state
-    })
-
-    const info = {
-      bookId: state.reader.bookId,
-      bookInfo: state.reader.bookInfo,
-      chapterInfos: state.reader.chapterInfos,
-      chapterContentHtml: state.reader.chapterContentHtml,
-      chapterContentStyles: state.reader.chapterContentStyles,
-      currentChapterId: state.reader.currentChapter.chapterUid,
-    }
-
+    const info = await getInfoFromPage()
     infos.push(info)
+    debug('已收集章节 id=%s', chapterUid)
   }
 
   // 书籍信息

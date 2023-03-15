@@ -7,9 +7,37 @@ const debug = baseDebug.extend('pptr')
 const userDataDir = path.join(APP_SUP_DIR, 'pptr-data')
 
 function processAppJs(js: string) {
-  // 'yes' === _0x16452a['env']['VUE_DISMISS_DEVTOOLS'] && _0x1be68e && (_0x1be68e['__vue__'] = null),
-  // 'yes' === _0x16452a['env'][_0x3744('0x22b')] && _0x5ad1f7['$el'] && (console['log']('__vue__'),
-  return js.replace(/\'yes\' *?=== *?([_\w]+\['env'\])/g, `'yes' !== $1`)
+  debug('modifying app.*.js')
+
+  {
+    // 'yes' === _0x16452a['env']['VUE_DISMISS_DEVTOOLS'] && _0x1be68e && (_0x1be68e['__vue__'] = null),
+    // 'yes' === _0x16452a['env'][_0x3744('0x22b')] && _0x5ad1f7['$el'] && (console['log']('__vue__'),
+    js = js.replace(/'yes' *?=== *?([_\w]+\['env'\])/g, `'yes' !== $1`)
+  }
+
+  {
+    // vuex
+    // this['commit'] = function(_0xe59d72, _0x31227c, _0x3aa954) {
+    //     return _0x5068e8['call'](_0x43325a, _0xe59d72, _0x31227c, _0x3aa954);
+    // }
+    js = js.replace(
+      /this\['commit'\]=function\((_0x\w+),(_0x\w+),(_0x[\w]+)\)\{([ \S]+?)\}/,
+      (match, arg1, arg2, arg3, functionBody) => {
+        return `this['commit'] = function(${arg1}, ${arg2}, ${arg3}) {
+          // hook
+          const [mutation, payload] = [${arg1}, ${arg2}]
+          console.log('injected vuex.commit: %s %s', mutation, payload)
+          if (mutation === 'updateReaderContentHtml') {
+            window.__chapterContentHtml__ = payload[0]
+          }
+
+          ${functionBody}
+        }`
+      }
+    )
+  }
+
+  return js
 }
 
 export async function getBrowser() {
@@ -42,9 +70,8 @@ export async function getBrowser() {
     urlPattern: `*/app.*.js`,
     resourceType: 'Script',
     modifyResponse({ body }) {
-      debug('current enable __vue__ prop attach')
       body = processAppJs(body)
-      return { body: body }
+      return { body }
     },
   })
 
