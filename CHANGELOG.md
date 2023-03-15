@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.4.0 2023-03-15
+
+- 修复 htchapterContentHtml 抓取
+
 ## v0.3.0 2022-12-25
 
 - 强制打开微信读书 `__vue__` 属性的使用
