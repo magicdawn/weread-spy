@@ -273,7 +273,10 @@ function collectImgSrc(el: $Element, $: CheerioAPI, ctx: string[]): OnNodeResult
     if (m?.[1]) {
       const src = m[1]
       $(el).attr('data-bg-img', src) // mark, has no effect, the result html will be abondoned
-      if (src) {
+
+      // TODO: 无法处理
+      // <div data-wr-bd=\"1\" data-wr-inset=\"1\" data-wr-co=\"344\" class=\"bgimg\" style=\"background-image:url(../Images/copyright.jpg)
+      if (src && !(src.startsWith('../') || src.startsWith('./'))) {
         ctx.push(src)
       }
     }
