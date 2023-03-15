@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
+import type { AnyNode as $AnyNode, Cheerio, CheerioAPI, Element as $Element } from 'cheerio'
 import { load as $load } from 'cheerio'
-import type { Element as $Element, AnyNode as $AnyNode, CheerioAPI, Cheerio } from 'cheerio'
+import debugFactory from 'debug'
+import _ from 'lodash'
 import njk from 'nunjucks'
 import prettier from 'prettier'
-import _ from 'lodash'
-import debugFactory from 'debug'
 import { Info } from '../../common'
 import { ImgSrcInfo } from '../epub-img'
 
@@ -154,14 +154,12 @@ type OnNodeResult = { traverseChildren?: boolean } | undefined | void
 type OnNode = (el: $AnyNode, $: CheerioAPI, extraData?: any) => OnNodeResult
 
 function traverse(el: $AnyNode, $: CheerioAPI, onNode: OnNode, extraData?: any) {
-  const $el = $(el)
-
   // self
   const { traverseChildren = true } = onNode(el, $, extraData) || {}
 
   // children
-  if (['tag', 'root'].includes(el.type) && traverseChildren) {
-    ;(el as $Element).childNodes?.forEach((c) => {
+  if (traverseChildren && (el.type === 'tag' || el.type === 'root')) {
+    el.childNodes.forEach((c) => {
       if (c.type === 'text') return
       traverse(c, $, onNode, extraData)
     })
@@ -189,11 +187,15 @@ function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
 
   const isSimpleTextSpan = (c: $AnyNode) =>
     c.type === 'tag' &&
-    (c as $Element).tagName?.toLowerCase() === 'span' &&
+    c.tagName?.toLowerCase() === 'span' &&
     Object.keys((c as $Element).attribs || {}).length === 0
 
-  const shouldCombine = el.childNodes.every(isSimpleTextSpan)
+  if (isSimpleTextSpan(el)) {
+    return { traverseChildren: false }
+  }
+
   const $el = $(el)
+  const shouldCombine = el.childNodes.every(isSimpleTextSpan)
   if (shouldCombine) {
     const text = $el.text()
     $el.empty()
@@ -229,7 +231,8 @@ function removeUnusedSpan(el: $Element, $: CheerioAPI): OnNodeResult {
         $el.append(cur$)
       }
     }
-    return { traverseChildren: false }
+
+    return { traverseChildren: true }
   }
 
   return { traverseChildren: true }
