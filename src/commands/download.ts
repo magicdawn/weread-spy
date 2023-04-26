@@ -7,13 +7,13 @@ import filenamify from 'filenamify'
 import fse from 'fs-extra'
 import path from 'path'
 import * as pptr from 'puppeteer'
-import { baseDebug, BOOKS_DIR } from '../common'
+import { BOOKS_DIR, baseDebug } from '../common'
 import { addBook } from '../common/books-map'
 import { getBrowser } from '../utils/pptr'
 
 const debug = baseDebug.extend('download')
 
-export default class DownloadCommand extends Command {
+export class DownloadCommand extends Command {
   static usage = Command.Usage({
     description: `下载 epub`,
   })

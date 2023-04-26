@@ -10,7 +10,7 @@ import { main as gen } from './gen'
 
 const debug = baseDebug.extend('one')
 
-export default class extends Command {
+export class OneCommand extends Command {
   static usage = Command.Usage({
     description: '一站式操作, 启动浏览器, 浏览阅读网页, 回到控制台输入 y 开始生成',
   })

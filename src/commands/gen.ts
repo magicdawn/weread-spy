@@ -3,7 +3,7 @@ import path from 'path'
 import { currentBooks } from '../common/books-map'
 import { checkEpub, genEpubFor } from '../utils/epub'
 
-export default class extends Command {
+export class GenCommand extends Command {
   static usage = Command.Usage({
     description: `根据已下载的信息生成 epub 文件`,
   })

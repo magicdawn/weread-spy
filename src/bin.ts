@@ -1,11 +1,11 @@
-import debugFactory from 'debug'
 import { Builtins, Cli } from 'clipanion'
-
-import GenEpubCommand from './commands/gen'
-import LaunchCommand from './commands/launch'
-import CheckCommand from './commands/check'
-import DownloadCommand from './commands/download'
-import OneCommand from './commands/one'
+import debugFactory from 'debug'
+import { CheckCommand } from './commands/check'
+import { DownloadCommand } from './commands/download'
+import { GenCommand } from './commands/gen'
+import { InfoCommand } from './commands/info'
+import { LaunchCommand } from './commands/launch'
+import { OneCommand } from './commands/one'
 
 // enable logs
 if (!process.env.DEBUG) {
@@ -27,11 +27,12 @@ cli.register(Builtins.HelpCommand)
 cli.register(Builtins.VersionCommand)
 
 // commands
+cli.register(OneCommand)
 cli.register(DownloadCommand)
-cli.register(GenEpubCommand)
+cli.register(GenCommand)
 cli.register(LaunchCommand)
 cli.register(CheckCommand)
-cli.register(OneCommand)
+cli.register(InfoCommand)
 
 cli.runExit(process.argv.slice(2), {
   ...Cli.defaultContext,

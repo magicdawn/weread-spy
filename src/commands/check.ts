@@ -2,7 +2,7 @@ import { Command, Option } from 'clipanion'
 import fg from 'fast-glob'
 import epubcheck from '../utils/epubcheck'
 
-export default class CheckCommand extends Command {
+export class CheckCommand extends Command {
   static usage = Command.Usage({
     description: `检查 epub 文件是否符合规范`,
   })
