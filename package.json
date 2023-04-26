@@ -1,7 +1,7 @@
 {
   "name": "weread-spy",
   "description": "weread spy",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": "magicdawn",
   "main": "bin/weread-spy.js",
   "bin": {
