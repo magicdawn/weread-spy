@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import fg from 'fast-glob'
 import filenamify from 'filenamify'
 import fse from 'fs-extra'
-import globby from 'globby'
 import JSZip, { InputType, JSZipFileOptions } from 'jszip'
 import _, { trimEnd } from 'lodash'
 import path from 'path'
@@ -172,7 +172,7 @@ export default class Book {
 
   // add folder
   async addZipFolder(name: string, localFolder: string) {
-    const files = await globby('**/*.*', { cwd: localFolder })
+    const files = await fg('**/*.*', { cwd: localFolder })
     const content = files.map((f) => fse.createReadStream(path.join(localFolder, f)))
     files.forEach((f, index) => {
       this.addZipFile(trimEnd(name, '/') + '/' + f, content[index])
