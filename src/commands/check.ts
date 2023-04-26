@@ -7,7 +7,7 @@ export class CheckCommand extends Command {
     description: `检查 epub 文件是否符合规范`,
   })
 
-  static paths = [['c'], ['check']]
+  static paths = [['check'], ['c']]
 
   files: string[] = Option.Rest({ required: 1 })
 
