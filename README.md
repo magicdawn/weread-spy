@@ -56,13 +56,15 @@ $ pnpm add weread-spy -g
 - `weread-spy gen -u <url>` 根据下载的信息, 生成电子书
 - `weread-spy check` 跑 epub check
 
-## Changelog
+## 更新日志
 
 ### v0.5.0 2023-04-26
 
 - 添加 `weread-spy info` 命令
 - 添加 `DEBUG_PROCESS_CONTENT=1` 支持, 不开启 workers process content
+- 添加 `weread-spy gen -D/--debug/--decompress <book-id-or-url-or-title>`, `-D` 解压缩 `.ePub` 文件, 方便 debug
 - 修复 cheerio, xml + cjk + pre/code 的处理, see https://github.com/cheeriojs/cheerio/issues/1198
+- 移除 gulp, 移除 globby, 直接用 fast-glob 更好
 
 ### v0.4.0 2023-03-15
 
