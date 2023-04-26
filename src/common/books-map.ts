@@ -15,7 +15,7 @@ export type BookItem = {
 export let currentBooks: BookItem[] = []
 
 let loaded = false
-async function load() {
+export async function loadBooks() {
   if (loaded) return
 
   let list: BookItem[] = []
@@ -24,12 +24,12 @@ async function load() {
   currentBooks = list
   loaded = true
 }
-async function save() {
+export async function saveBooks() {
   return outputJSON(BOOKS_MAP_FILE, currentBooks, { spaces: 2 })
 }
 
 export async function addBook(item: BookItem) {
-  await load()
+  await loadBooks()
   const list = currentBooks.slice()
 
   // remove
@@ -45,11 +45,23 @@ export async function addBook(item: BookItem) {
 
   list.push(item)
   currentBooks = list
-  save()
+  saveBooks()
 }
 
 export async function queryBook(query: Partial<BookItem>) {
-  await load()
+  await loadBooks()
   const item = currentBooks.find((item) => Object.keys(query).every((k) => item[k] === query[k]))
   return item
+}
+
+export async function queryBookAny(query: string) {
+  let _query: Partial<BookItem> = {}
+  if (/^\d+$/.test(query)) {
+    _query = { id: query }
+  } else if (/^https?:\/\//.test(query)) {
+    _query = { url: query }
+  } else {
+    _query = { title: query }
+  }
+  return queryBook(_query)
 }

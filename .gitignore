@@ -29,3 +29,6 @@ yarn.lock
 
 # ts
 **/*.tsbuildinfo
+
+# lib
+/lib-test

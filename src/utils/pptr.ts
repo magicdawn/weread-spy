@@ -1,10 +1,8 @@
-import path from 'path'
 import pptr from 'puppeteer'
 import { RequestInterceptionManager } from 'puppeteer-intercept-and-modify-requests'
-import { APP_SUP_DIR, baseDebug } from '../common'
+import { PPTR_DATA_DIR, baseDebug } from '../common'
 
 const debug = baseDebug.extend('pptr')
-const userDataDir = path.join(APP_SUP_DIR, 'pptr-data')
 
 function processAppJs(js: string) {
   debug('modifying app.*.js')
@@ -44,7 +42,7 @@ export async function getBrowser() {
   const browser = await pptr.launch({
     headless: false,
     devtools: false,
-    userDataDir,
+    userDataDir: PPTR_DATA_DIR,
     defaultViewport: null,
     ignoreDefaultArgs: ['--enable-automation'],
   })
@@ -65,6 +63,7 @@ export async function getBrowser() {
 
   // intercept
   const client = await page.target().createCDPSession()
+  // @ts-ignore
   const interceptManager = new RequestInterceptionManager(client)
   await interceptManager.intercept({
     urlPattern: `*/app.*.js`,

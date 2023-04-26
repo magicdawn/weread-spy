@@ -6,7 +6,7 @@ import URI from 'urijs'
 import { baseDebug } from '../common'
 import { getBrowser } from '../utils/pptr'
 import { main as download } from './download'
-import { main as gen } from './gen'
+import { genCommandMain as gen } from './gen'
 
 const debug = baseDebug.extend('one')
 

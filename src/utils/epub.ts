@@ -9,8 +9,9 @@
     https://github.com/danburzo/percollate/blob/master/index.js#L516
  */
 
+import AdmZip from 'adm-zip'
 import filenamify from 'filenamify'
-import fs, { ensureDir } from 'fs-extra'
+import fse from 'fs-extra'
 import nunjucks from 'nunjucks'
 import path from 'path'
 import { performance } from 'perf_hooks'
@@ -27,8 +28,8 @@ import mapOnWorker from './mapOnWorker'
 import { createWorkers } from './processContent/index.main'
 
 // this thread for debugger
-// import pmap from 'promise.map'
-// import processContent from './processContent'
+import pmap from 'promise.map'
+import processContent from './processContent'
 
 const debug = baseDebug.extend('utils:epub')
 
@@ -54,10 +55,10 @@ export async function gen({
   await book.addZipFolder('META-INF', path.join(template_base, 'META-INF'))
 
   const [navTemplate, tocTemplate, opfTemplate, coverTemplate] = await Promise.all([
-    fs.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
-    fs.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8'),
-    fs.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8'),
-    fs.readFile(path.join(template_base, 'OEBPS/cover.xhtml'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8'),
+    fse.readFile(path.join(template_base, 'OEBPS/cover.xhtml'), 'utf8'),
   ])
 
   // 章节 html
@@ -93,51 +94,55 @@ export async function gen({
   // extra css
   const extraCss: string[] = []
   const customCssFile = path.join(bookDir, 'custom.css')
-  if (await fs.pathExists(customCssFile)) {
+  if (await fse.pathExists(customCssFile)) {
     extraCss.push('custom.css')
     addFile({ filename: 'custom.css', filepath: customCssFile })
   }
 
-  //
-  // processContent in multiple threads, via workers
-  //
+  const DEBUG_PROCESS_CONTENT = !!process.env.DEBUG_PROCESS_CONTENT
   const processContentStart = performance.now()
-  const workers = createWorkers()
-  const processResults = await mapOnWorker(
-    chapterInfos,
-    async (chapterInfo, i, arr, worker) => {
-      const c = chapterInfos[i]
-      const { chapterUid } = c
-      const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
-      return await worker.api.processContent(data.infos[i], {
-        cssFilenames,
-        imgSrcInfo,
-      })
-    },
-    workers
-  )
-  workers.forEach((w) => w.nodeWorker.unref())
-  await new Promise((resolve) => setTimeout(resolve))
-  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
+  let processResults: ReturnType<typeof processContent>[] = []
 
   //
   // processContent in this thread
   //
-  // const processContentStart = performance.now()
-  // const processResults = await pmap(
-  //   chapterInfos,
-  //   async (chapterInfo, i, arr) => {
-  //     const c = chapterInfos[i]
-  //     const { chapterUid } = c
-  //     const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
-  //     return processContent(data.infos[i], {
-  //       cssFilenames,
-  //       imgSrcInfo,
-  //     })
-  //   },
-  //   5
-  // )
-  // debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
+  if (DEBUG_PROCESS_CONTENT) {
+    processResults = await pmap(
+      chapterInfos,
+      async (chapterInfo, i, arr) => {
+        const c = chapterInfos[i]
+        const { chapterUid } = c
+        const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
+        return processContent(data.infos[i], {
+          cssFilenames,
+          imgSrcInfo,
+        })
+      },
+      5
+    )
+  }
+  //
+  // processContent in multiple threads, via workers
+  //
+  else {
+    const workers = createWorkers()
+    processResults = await mapOnWorker(
+      chapterInfos,
+      async (chapterInfo, i, arr, worker) => {
+        const c = chapterInfos[i]
+        const { chapterUid } = c
+        const cssFilenames = [`css/chapter-${chapterUid}.css`, ...extraCss]
+        return await worker.api.processContent(data.infos[i], {
+          cssFilenames,
+          imgSrcInfo,
+        })
+      },
+      workers
+    )
+    workers.forEach((w) => w.nodeWorker.unref())
+    await new Promise((resolve) => setTimeout(resolve))
+  }
+  debug('processContent cost %s ms', (performance.now() - processContentStart).toFixed())
 
   for (let i = 0; i < chapterInfos.length; i++) {
     const c = chapterInfos[i]
@@ -217,7 +222,7 @@ export async function gen({
     if (typeof f.content !== 'undefined' && f.content !== null) {
       content = f.content
     } else if (f.filepath) {
-      content = fs.readFileSync(f.filepath)
+      content = fse.readFileSync(f.filepath)
     } else {
       continue
     }
@@ -233,7 +238,7 @@ export async function gen({
     compression: 'DEFLATE',
     compressionOptions: { level: 9 },
   })
-  const output = fs.createWriteStream(epubFile)
+  const output = fse.createWriteStream(epubFile)
   return new Promise((resolve, reject) => {
     pipeline(stream, output, (err) => {
       if (err) {
@@ -246,27 +251,35 @@ export async function gen({
 }
 
 async function getInfo(id: string, dir: string) {
-  let { title = '' } = (await queryBook({ id })) || {}
-  title = filenamify(title)
+  const { title = '' } = (await queryBook({ id })) || {}
+  const titleAsFilename = filenamify(title)
 
-  const data = fs.readJsonSync(path.join(BOOKS_DIR, `${id}-${title}.json`))
+  const data = fse.readJsonSync(path.join(BOOKS_DIR, `${id}-${titleAsFilename}.json`))
 
-  let filename = `${title}.epub`
+  let filename = `${titleAsFilename}.epub`
   filename = filename.replace(/（/g, '(').replace(/）/g, ')') // e,g 红楼梦（全集）
   const file = path.join(dir, filename)
 
-  return { data, file }
+  return { data, file, titleAsFilename }
 }
 
-export async function genEpubFor(id: string, dir: string, clean: boolean) {
-  const { data, file } = await getInfo(id, dir)
+export async function genEpubFor(id: string, dir: string, clean: boolean, decompress = false) {
+  const { data, file, titleAsFilename } = await getInfo(id, dir)
 
-  await ensureDir(dir)
+  await fse.ensureDir(dir)
   await gen({
     epubFile: file,
     data,
     clean,
   })
+
+  if (decompress) {
+    const epubUnzipDir = path.join(dir, titleAsFilename + '.epub.d')
+    debug('decompress: to %s', epubUnzipDir)
+    await fse.ensureDir(epubUnzipDir)
+    const zip = new AdmZip(file)
+    zip.extractAllTo(epubUnzipDir, true)
+  }
 
   debug('epub created: %s', file)
   return file

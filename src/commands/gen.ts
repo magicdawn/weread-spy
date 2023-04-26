@@ -1,23 +1,21 @@
 import { Command, Option } from 'clipanion'
 import path from 'path'
-import { currentBooks } from '../common/books-map'
+import { currentBooks, queryBookAny } from '../common/books-map'
 import { checkEpub, genEpubFor } from '../utils/epub'
 
 export class GenCommand extends Command {
   static usage = Command.Usage({
     description: `根据已下载的信息生成 epub 文件`,
+    details: `<book> can be id/url/title`,
   })
 
   static paths = [['gen'], ['gen-epub']]
 
-  url = Option.String('-u,--url', {
-    description:
-      'book start url. e.g(https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180)',
-  })
-
-  id = Option.String('-i,--id', {
-    description: 'book id. e.g(812443)',
-  })
+  // book can be
+  // url: 'book start url. e.g(https://weread.qq.com/web/reader/41432f705de453414ca0b4akc81322c012c81e728d9d180)',
+  // title: %s
+  // id: 812443
+  book = Option.String({ required: true, name: 'book' })
 
   clean = Option.Boolean('-c,--clean', {
     description: 'clean imgs before gen',
@@ -27,22 +25,39 @@ export class GenCommand extends Command {
     description: 'epub 文件输出目录, 默认当前文件夹',
   })
 
+  decompress = Option.Boolean('-D,--debug,--decompress', {
+    description: 'decompress .ePub file for debug purpose',
+  })
+
+  err(msg: string) {
+    console.error('Error: %s', msg)
+    process.exit(1)
+  }
+
   async execute() {
-    const { url, clean, id, dir } = this
-    main({ url, clean: Boolean(clean), id, dir })
+    const { clean, dir, decompress } = this
+
+    const book = await queryBookAny(this.book)
+    if (!book) return this.err('book not found')
+
+    const id = book.id
+    const url = book.url
+    genCommandMain({ url, id, clean: Boolean(clean), dir, decompress })
   }
 }
 
-export async function main({
+export async function genCommandMain({
   url,
   clean,
   id,
   dir,
+  decompress = false,
 }: {
   url?: string
   clean: boolean
   id?: string
   dir?: string
+  decompress?: boolean
 }) {
   let bookId: string | undefined
   if (id) {
@@ -61,6 +76,7 @@ export async function main({
   // normalize
   dir = path.resolve(dir || process.cwd())
 
-  await genEpubFor(bookId, dir, clean)
+  await genEpubFor(bookId, dir, clean, decompress)
+
   return await checkEpub(bookId, dir)
 }

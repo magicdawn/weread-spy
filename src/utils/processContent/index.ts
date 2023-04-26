@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-import type { AnyNode as $AnyNode, Cheerio, CheerioAPI, Element as $Element } from 'cheerio'
+import type { AnyNode as $AnyNode, Element as $Element, Cheerio, CheerioAPI } from 'cheerio'
 import { load as $load } from 'cheerio'
 import debugFactory from 'debug'
 import _ from 'lodash'
@@ -31,8 +31,12 @@ export default function processContent(info: Info, options: ProcessContentOption
     html = html.join('')
   }
 
-  // extract content from <html><head></head><body>{content}<body></html>
+  if (html.includes('//获取数据类型所占位数，在64位机器上UInt占8字节64位')) {
+    debugger
+  }
+
   {
+    // extract content from <html><head></head><body>{content}<body></html>
     const $ = $load(html, { decodeEntities: false, lowerCaseTags: true })
     if ($('body').length) {
       html = $('body').html() || ''
@@ -43,7 +47,12 @@ export default function processContent(info: Info, options: ProcessContentOption
   html = applyTemplate({ style: chapterContentStyles, content: html, cssFilenames })
 
   // new $
-  const $ = $load(html, { decodeEntities: false, lowerCaseTags: true })
+  const $ = $load(html, {
+    // @ts-ignore
+    _useHtmlParser2: true,
+    decodeEntities: false,
+    lowerCaseTags: true,
+  })
   // debug('cheerio loaded')
 
   // remove all data-xxx

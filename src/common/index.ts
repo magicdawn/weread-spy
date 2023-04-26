@@ -28,3 +28,4 @@ export const PROJECT_ROOT = path.dirname(closetPkgJson)
 
 export const APP_SUP_DIR = envPaths('weread-spy', { suffix: '' }).data
 export const BOOKS_DIR = path.join(APP_SUP_DIR, 'books')
+export const PPTR_DATA_DIR = path.join(APP_SUP_DIR, 'pptr-data')
