@@ -34,6 +34,7 @@ export class OneCommand extends Command {
       const pageUrl = e.url()
       const uri = URI(pageUrl)
       const path = uri.pathname()
+      // if (path.startsWith('/web/bookDetail/')) {
       if (path.startsWith('/web/reader/')) {
         // https://github.com/SBoudrias/Inquirer.js/issues/491#issuecomment-277595658
         // clean prev

@@ -30,7 +30,12 @@ export class DownloadCommand extends Command {
   })
 
   async execute() {
-    const { url, interval } = this
+    let { url, interval } = this
+
+    if (/^\w+$/.test(url) && !url.includes('/')) {
+      url = `https://weread.qq.com/web/bookDetail/${url}`
+    }
+
     main(url, { interval })
   }
 }
@@ -48,6 +53,10 @@ export async function main(
 
   await page.goto(bookReadUrl)
 
+  /**
+   * pptr Actions
+   */
+
   const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {
     let ok = false
     while (!ok) {
@@ -60,35 +69,6 @@ export async function main(
     }
   }
 
-  await waitCondition((el) => {
-    const state = (el as any).__vue__.$store.state
-    return state?.reader?.chapterContentState === 'DONE'
-  })
-
-  async function getInfoFromPage() {
-    const { state, chapterContentHtml } = await page.$eval('#app', (el) => {
-      const state = (el as any).__vue__.$store.state
-      const chapterContentHtml = globalThis.__chapterContentHtml__
-      return { state, chapterContentHtml }
-    })
-
-    // want
-    const info = {
-      bookId: state.reader.bookId,
-      bookInfo: state.reader.bookInfo,
-      chapterInfos: state.reader.chapterInfos,
-      chapterContentHtml: chapterContentHtml || state.reader.chapterContentHtml,
-      chapterContentStyles: state.reader.chapterContentStyles,
-      currentChapterId: state.reader.currentChapter.chapterUid,
-    }
-    return info
-  }
-
-  const startInfo = await getInfoFromPage()
-
-  // save map
-  await addBook({ id: startInfo.bookId, title: startInfo.bookInfo.title, url: bookReadUrl })
-
   const changeChapter = async (uid: number) => {
     await page.$eval(
       '#routerView',
@@ -98,6 +78,39 @@ export async function main(
       uid
     )
   }
+
+  async function getInfoFromPage() {
+    const { state, chapterContentHtmlArray } = await page.$eval('#app', (el) => {
+      const state = (el as any).__vue__.$store.state
+      const chapterContentHtmlArray = globalThis.__chapterContentHtmlArray__
+      return { state, chapterContentHtmlArray }
+    })
+
+    // want
+    const info = {
+      bookId: state.reader.bookId,
+      bookInfo: state.reader.bookInfo,
+      chapterInfos: state.reader.chapterInfos,
+      chapterContentHtmlArray: chapterContentHtmlArray, // state.reader.chapterContentHtml,
+      chapterContentStyles: state.reader.chapterContentStyles,
+      currentChapterId: state.reader.currentChapter.chapterUid,
+    }
+    return info
+  }
+
+  /**
+   * Engine start
+   */
+
+  await waitCondition((el) => {
+    const state = (el as any).__vue__.$store.state
+    return state?.reader?.chapterContentState === 'DONE'
+  })
+
+  const startInfo = await getInfoFromPage()
+
+  // save map
+  await addBook({ id: startInfo.bookId, title: startInfo.bookInfo.title, url: bookReadUrl })
 
   let usingInterval: number | undefined = undefined
   if (options.interval) {

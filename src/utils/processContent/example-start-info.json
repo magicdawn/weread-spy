@@ -82,6 +82,7 @@
     }
   ],
   "chapterContentHtml": "<div>html here</div>",
+  "chapterContentHtmlArray": ["<div>html here</div>"],
   "chapterContentStyles": ".readerChapterContent{ color: red; }",
   "currentChapterId": 13
 }

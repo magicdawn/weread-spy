@@ -4,13 +4,13 @@ import { PPTR_DATA_DIR, baseDebug } from '../common'
 
 const debug = baseDebug.extend('pptr')
 
-function processAppJs(js: string) {
+function processAppJs(js?: string) {
   debug('modifying app.*.js')
 
   {
     // 'yes' === _0x16452a['env']['VUE_DISMISS_DEVTOOLS'] && _0x1be68e && (_0x1be68e['__vue__'] = null),
     // 'yes' === _0x16452a['env'][_0x3744('0x22b')] && _0x5ad1f7['$el'] && (console['log']('__vue__'),
-    js = js.replace(/'yes' *?=== *?([_\w]+\['env'\])/g, `'yes' !== $1`)
+    js = (js || '').replace(/'yes' *?=== *?([_\w]+\['env'\])/g, `'yes' !== $1`)
   }
 
   {
@@ -24,9 +24,9 @@ function processAppJs(js: string) {
         return `this['commit'] = function(${arg1}, ${arg2}, ${arg3}) {
           // hook
           const [mutation, payload] = [${arg1}, ${arg2}]
-          console.log('injected vuex.commit: %s %s', mutation, payload)
+          console.log('injected vuex.commit: ', mutation, payload)
           if (mutation === 'updateReaderContentHtml') {
-            window.__chapterContentHtml__ = payload[0]
+            window.__chapterContentHtmlArray__ = payload
           }
 
           ${functionBody}

@@ -1,12 +1,45 @@
+import { load as $load } from 'cheerio'
 import d from 'debug'
 import envPaths from 'env-paths'
 import path from 'path'
 import { sync as pkgUpSync } from 'pkg-up'
+import { SetOptional } from 'type-fest'
 
 import type exampleStartInfo from '../utils/processContent/example-start-info.json'
-export type Info = typeof exampleStartInfo
-export type BookInfo = typeof exampleStartInfo.bookInfo
-export type ChapterInfo = (typeof exampleStartInfo.chapterInfos)[0]
+export type Info = SetOptional<
+  typeof exampleStartInfo,
+  // 旧的是 html: string
+  // 新的是 htmlArray: string[]
+  'chapterContentHtml' | 'chapterContentHtmlArray'
+>
+
+export type BookInfo = Info['bookInfo']
+export type ChapterInfo = Info['chapterInfos'][number]
+
+export function getBookHtml(info: Info) {
+  // 2021-08-29 出现 chapterContentHtml 为 string[]
+  // 2023-06-20 处理多页, chapterContentHtmlArray
+  let htmlArray: string[] = []
+  if (info.chapterContentHtmlArray) {
+    htmlArray = info.chapterContentHtmlArray
+  } else if (Array.isArray(info.chapterContentHtml)) {
+    htmlArray = info.chapterContentHtml
+  } else {
+    htmlArray = [info.chapterContentHtml || '']
+  }
+
+  const extractUselessWrapper = (fullHtml: string) => {
+    // extract content from <html><head></head><body>{content}<body></html>
+    const $ = $load(fullHtml, { decodeEntities: false, lowerCaseTags: true })
+    if ($('body').length) {
+      fullHtml = $('body').html() || ''
+    }
+    return fullHtml
+  }
+
+  const html = htmlArray.map((item) => extractUselessWrapper(item)).join('\n')
+  return html
+}
 
 export const baseDebug = d('weread-spy')
 

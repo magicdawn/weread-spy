@@ -6,7 +6,7 @@ import debugFactory from 'debug'
 import _ from 'lodash'
 import njk from 'nunjucks'
 import prettier from 'prettier'
-import { Info } from '../../common'
+import { Info, getBookHtml } from '../../common'
 import { ImgSrcInfo } from '../epub-img'
 
 const debug = debugFactory('weread-spy:utils:processContent')
@@ -25,23 +25,7 @@ export default function processContent(info: Info, options: ProcessContentOption
   const { cssFilenames, imgSrcInfo } = options
   debug('processContent for title=%s chapterUid=%s', info.bookInfo.title, currentChapterId)
 
-  // 2021-08-29 出现 chapterContentHtml 为 string[]
-  let html = chapterContentHtml
-  if (Array.isArray(html)) {
-    html = html.join('')
-  }
-
-  if (html.includes('//获取数据类型所占位数，在64位机器上UInt占8字节64位')) {
-    debugger
-  }
-
-  {
-    // extract content from <html><head></head><body>{content}<body></html>
-    const $ = $load(html, { decodeEntities: false, lowerCaseTags: true })
-    if ($('body').length) {
-      html = $('body').html() || ''
-    }
-  }
+  let html = getBookHtml(info)
 
   // apply templates
   html = applyTemplate({ style: chapterContentStyles, content: html, cssFilenames })
