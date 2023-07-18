@@ -1,5 +1,5 @@
-import * as Comlink from 'comlink/dist/esm/comlink.js'
-import nodeEndpoint from 'comlink/dist/esm/node-adapter.js'
+import * as Comlink from 'comlink/dist/esm/comlink.mjs'
+import nodeEndpoint from 'comlink/dist/esm/node-adapter.mjs' // NOTE: node-adpater 没有 .js 版本
 import os from 'os'
 import { Worker } from 'worker_threads'
 

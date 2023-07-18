@@ -1,5 +1,5 @@
-import * as Comlink from 'comlink/dist/esm/comlink.js'
-import nodeEndpoint from 'comlink/dist/esm/node-adapter.js'
+import * as Comlink from 'comlink/dist/esm/comlink.mjs'
+import nodeEndpoint from 'comlink/dist/esm/node-adapter.mjs'
 import { parentPort } from 'worker_threads'
 import processContent, { getImgSrcs } from '../index.js'
 

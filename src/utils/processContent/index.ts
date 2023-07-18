@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-import { Info, getBookHtml } from '$common'
+import { $esm, Info, getBookHtml } from '$common'
 import type { AnyNode as $AnyNode, Element as $Element, Cheerio, CheerioAPI } from 'cheerio'
 import { load as $load } from 'cheerio'
 import debugFactory from 'debug'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 import njk from 'nunjucks'
 import prettier from 'prettier'
 import { ImgSrcInfo } from '../epub-img.js'
 
 const debug = debugFactory('weread-spy:utils:processContent')
+const { require } = $esm(import.meta)
 const prettierConfig = require('@magicdawn/prettier-config') as prettier.Options
 
 type TransformImgSrc = (src: string) => string

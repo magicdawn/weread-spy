@@ -1,6 +1,6 @@
 import { Command, Option } from 'clipanion'
 import inquirer from 'inquirer'
-import _ from 'lodash'
+import * as _ from 'lodash-es'
 import * as pptr from 'puppeteer'
 import URI from 'urijs'
 import { baseDebug } from '../common/index.js'

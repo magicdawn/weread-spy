@@ -1,4 +1,4 @@
-import { outputJSON, pathExists, readJSON } from 'fs-extra'
+import fse from 'fs-extra'
 import path from 'path'
 import { BOOKS_DIR } from './index.js'
 
@@ -19,13 +19,13 @@ export async function loadBooks() {
   if (loaded) return
 
   let list: BookItem[] = []
-  if (await pathExists(BOOKS_MAP_FILE)) list = await readJSON(BOOKS_MAP_FILE)
+  if (await fse.pathExists(BOOKS_MAP_FILE)) list = await fse.readJSON(BOOKS_MAP_FILE)
 
   currentBooks = list
   loaded = true
 }
 export async function saveBooks() {
-  return outputJSON(BOOKS_MAP_FILE, currentBooks, { spaces: 2 })
+  return fse.outputJSON(BOOKS_MAP_FILE, currentBooks, { spaces: 2 })
 }
 
 export async function addBook(item: BookItem) {

@@ -8,6 +8,8 @@ import { SetOptional } from 'type-fest'
 
 export { $esm }
 
+const { __dirname } = $esm(import.meta)
+
 import type exampleStartInfo from '../utils/processContent/example-start-info.json'
 export type Info = SetOptional<
   typeof exampleStartInfo,
