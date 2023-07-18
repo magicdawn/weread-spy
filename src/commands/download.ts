@@ -73,6 +73,7 @@ export async function main(
     await page.$eval(
       '#routerView',
       (el, uid) => {
+        // TODO: 这个有点复杂, 只是 dispatch action 不够, 需要 vue instance.changeChapter
         ;(el as any).__vue__.changeChapter({ chapterUid: uid })
       },
       uid
@@ -81,7 +82,8 @@ export async function main(
 
   async function getInfoFromPage() {
     const { state, chapterContentHtmlArray } = await page.$eval('#app', (el) => {
-      const state = (el as any).__vue__.$store.state
+      // const state = (el as any).__vue__.$store.state
+      const state = globalThis.__store__.state
       const chapterContentHtmlArray = globalThis.__chapterContentHtmlArray__
       return { state, chapterContentHtmlArray }
     })
@@ -103,7 +105,8 @@ export async function main(
    */
 
   await waitCondition((el) => {
-    const state = (el as any).__vue__.$store.state
+    // const state = (el as any).__vue__.$store.state
+    const state = (window as any).__store__?.state
     return state?.reader?.chapterContentState === 'DONE'
   })
 
@@ -139,8 +142,9 @@ export async function main(
     await changeChapter(chapterUid)
 
     await waitCondition((el, id) => {
-      const state = (el as any).__vue__.$store.state
-      const currentChapterId = state.reader.currentChapter.chapterUid
+      // const state = (el as any).__vue__.$store.state
+      const state = globalThis.__store__?.state
+      const currentChapterId = state?.reader?.currentChapter?.chapterUid
       const currentState = state?.reader?.chapterContentState
       console.log({ currentChapterId, currentState, id })
       return currentChapterId === id && currentState === 'DONE'
