@@ -1,5 +1,5 @@
 import { Command } from 'clipanion'
-import { getBrowser } from '../utils/pptr'
+import { getBrowser } from '../utils/pptr.js'
 
 export class LaunchCommand extends Command {
   static usage = Command.Usage({

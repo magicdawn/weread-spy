@@ -3,12 +3,15 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
+    "baseUrl": "./",
+    "paths": {
+      "$*": ["src/*.js", "src/*/index.js"]
+    },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "Node16",
+    "module": "Node16",
     "strict": false,
     "strictNullChecks": true,
     "skipLibCheck": true,
@@ -16,6 +19,7 @@
   },
   "ts-node": {
     "transpileOnly": true,
-    "swc": true
+    "swc": true,
+    "esm": true
   }
 }

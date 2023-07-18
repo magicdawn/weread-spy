@@ -1,6 +1,6 @@
 import { Command, Usage } from 'clipanion'
-import { BOOKS_DIR, PPTR_DATA_DIR } from '../common'
-import { BOOKS_MAP_FILE, currentBooks, loadBooks } from '../common/books-map'
+import { BOOKS_MAP_FILE, currentBooks, loadBooks } from '../common/books-map.js'
+import { BOOKS_DIR, PPTR_DATA_DIR } from '../common/index.js'
 
 export class InfoCommand extends Command {
   static paths?: string[][] = [['info']]

@@ -3,10 +3,10 @@ import inquirer from 'inquirer'
 import _ from 'lodash'
 import * as pptr from 'puppeteer'
 import URI from 'urijs'
-import { baseDebug } from '../common'
-import { getBrowser } from '../utils/pptr'
-import { main as download } from './download'
-import { genCommandMain as gen } from './gen'
+import { baseDebug } from '../common/index.js'
+import { getBrowser } from '../utils/pptr.js'
+import { main as download } from './download.js'
+import { genCommandMain as gen } from './gen.js'
 
 const debug = baseDebug.extend('one')
 

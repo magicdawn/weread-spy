@@ -1,7 +1,7 @@
 import { Command, Option } from 'clipanion'
 import path from 'path'
-import { currentBooks, queryBookAny } from '../common/books-map'
-import { checkEpub, genEpubFor } from '../utils/epub'
+import { currentBooks, queryBookAny } from '../common/books-map.js'
+import { checkEpub, genEpubFor } from '../utils/epub.js'
 
 export class GenCommand extends Command {
   static usage = Command.Usage({

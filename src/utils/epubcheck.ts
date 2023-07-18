@@ -1,6 +1,6 @@
-import execa from 'execa'
+import { PROJECT_ROOT } from '$common'
+import * as execa from 'execa'
 import path from 'path'
-import { PROJECT_ROOT } from '../common'
 
 // epubchecker 安装时从 github release 下载, 且没有使用 http_proxy
 // function getJarPath() {
@@ -23,7 +23,7 @@ export default function epubcheck(file: string) {
   const cmd = `java -jar '${epubcheckJar}' '${file}'`
   console.log('[exec]: %s', cmd)
   try {
-    execa.commandSync(cmd, { stdio: 'inherit', shell: true })
+    execa.execaCommandSync(cmd, { stdio: 'inherit', shell: true })
   } catch (error) {
     // ignore
   }

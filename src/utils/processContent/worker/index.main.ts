@@ -1,9 +1,9 @@
-import { Worker } from 'worker_threads'
-import * as Comlink from 'comlink/dist/umd/comlink'
-import nodeEndpoint from 'comlink/dist/umd/node-adapter'
+import * as Comlink from 'comlink/dist/esm/comlink.js'
+import nodeEndpoint from 'comlink/dist/esm/node-adapter.js'
 import os from 'os'
+import { Worker } from 'worker_threads'
 
-import type processContent from './index'
+import type processContent from '../index.js'
 type ProcessContent = typeof processContent
 
 /**
@@ -20,10 +20,12 @@ type ProcessContent = typeof processContent
  */
 
 export function createWorker() {
-  const workerFile = process.env.ESBUILD_BUNDLE
-    ? __dirname + '/processContent.worker.js'
-    : __dirname + '/index.worker.js'
+  // const workerFile = process.env.ESBUILD_BUNDLE
+  //   ? __dirname + '/processContent.worker.js'
+  //   : __dirname + '/index.worker.js'
+  const workerFile = __dirname + '/processContent.worker.js'
   const worker = new Worker(workerFile)
+  // @ts-ignore
   const api = Comlink.wrap(nodeEndpoint(worker)) as Comlink.Remote<{
     processContent: ProcessContent
   }>

@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
+import { Info, getBookHtml } from '$common'
 import type { AnyNode as $AnyNode, Element as $Element, Cheerio, CheerioAPI } from 'cheerio'
 import { load as $load } from 'cheerio'
 import debugFactory from 'debug'
 import _ from 'lodash'
 import njk from 'nunjucks'
 import prettier from 'prettier'
-import { Info, getBookHtml } from '../../common'
-import { ImgSrcInfo } from '../epub-img'
+import { ImgSrcInfo } from '../epub-img.js'
 
 const debug = debugFactory('weread-spy:utils:processContent')
 const prettierConfig = require('@magicdawn/prettier-config') as prettier.Options
@@ -20,7 +20,7 @@ interface ProcessContentOptions {
 
 const DATA_ATTR_WHITELIST = ['data-src', 'data-bg-img']
 
-export default function processContent(info: Info, options: ProcessContentOptions) {
+export default async function processContent(info: Info, options: ProcessContentOptions) {
   const { chapterContentHtml, chapterContentStyles, currentChapterId } = info
   const { cssFilenames, imgSrcInfo } = options
   debug('processContent for title=%s chapterUid=%s', info.bookInfo.title, currentChapterId)
@@ -74,7 +74,7 @@ export default function processContent(info: Info, options: ProcessContentOption
 
   let style = chapterContentStyles
   try {
-    style = prettier.format(style, { ...prettierConfig, parser: 'css' })
+    style = await prettier.format(style, { ...prettierConfig, parser: 'css' })
   } catch (e) {
     console.warn('[prettier] format met error: currentChapterId = %s', currentChapterId)
     console.error(e.stack || e)

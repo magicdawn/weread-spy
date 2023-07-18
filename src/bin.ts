@@ -1,11 +1,16 @@
+#!/usr/bin/env node
+
 import { Builtins, Cli } from 'clipanion'
 import debugFactory from 'debug'
-import { CheckCommand } from './commands/check'
-import { DownloadCommand } from './commands/download'
-import { GenCommand } from './commands/gen'
-import { InfoCommand } from './commands/info'
-import { LaunchCommand } from './commands/launch'
-import { OneCommand } from './commands/one'
+import { CheckCommand } from './commands/check.js'
+import { DownloadCommand } from './commands/download.js'
+import { GenCommand } from './commands/gen.js'
+import { InfoCommand } from './commands/info.js'
+import { LaunchCommand } from './commands/launch.js'
+import { OneCommand } from './commands/one.js'
+import { $esm } from './common/index.js'
+
+const { require } = $esm(import.meta)
 
 // enable logs
 if (!process.env.DEBUG) {

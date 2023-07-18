@@ -7,9 +7,9 @@ import filenamify from 'filenamify'
 import fse from 'fs-extra'
 import path from 'path'
 import * as pptr from 'puppeteer'
-import { BOOKS_DIR, baseDebug } from '../common'
-import { addBook } from '../common/books-map'
-import { getBrowser } from '../utils/pptr'
+import { addBook } from '../common/books-map.js'
+import { BOOKS_DIR, baseDebug } from '../common/index.js'
+import { getBrowser } from '../utils/pptr.js'
 
 const debug = baseDebug.extend('download')
 

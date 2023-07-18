@@ -1,15 +1,15 @@
+import { getBookHtml } from '$common'
 import { createHash } from 'crypto'
 import debugFactory from 'debug'
-import dl from 'dl-vampire'
+import { dl } from 'dl-vampire'
 import fse from 'fs-extra'
 import mime from 'mime'
 import ms from 'ms'
 import path from 'path'
 import pmap from 'promise.map'
 import sharp from 'sharp'
-import { getBookHtml } from '../common'
-import Book from './Book'
-import { getImgSrcs } from './processContent'
+import Book from './Book.js'
+import { getImgSrcs } from './processContent/index.js'
 
 const debug = debugFactory('weread-spy:utils:epub-img')
 const md5 = (s: string) => createHash('md5').update(s, 'utf8').digest('hex')

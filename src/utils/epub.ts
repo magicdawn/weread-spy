@@ -9,6 +9,7 @@
     https://github.com/danburzo/percollate/blob/master/index.js#L516
  */
 
+import { baseDebug, BOOKS_DIR, Data, PROJECT_ROOT } from '$common'
 import AdmZip from 'adm-zip'
 import filenamify from 'filenamify'
 import fse from 'fs-extra'
@@ -16,20 +17,19 @@ import nunjucks from 'nunjucks'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import { pipeline } from 'stream'
-import { baseDebug, BOOKS_DIR, Data, PROJECT_ROOT } from '../common'
-import { queryBook } from '../common/books-map'
-import Book from './Book'
-import getImgSrcInfo from './epub-img'
-import epubcheck from './epubcheck'
-import { FileItem } from './EpubModel'
+import { queryBook } from '../common/books-map.js'
+import Book from './Book.js'
+import getImgSrcInfo from './epub-img.js'
+import epubcheck from './epubcheck.js'
+import { FileItem } from './EpubModel/index.js'
 
 // worker
-import mapOnWorker from './mapOnWorker'
-import { createWorkers } from './processContent/index.main'
+import mapOnWorker from './mapOnWorker.js'
+import { createWorkers } from './processContent/worker/index.main.js'
 
 // this thread for debugger
 import pmap from 'promise.map'
-import processContent from './processContent'
+import processContent from './processContent/index.js'
 
 const debug = baseDebug.extend('utils:epub')
 
@@ -101,7 +101,7 @@ export async function gen({
 
   const DEBUG_PROCESS_CONTENT = !!process.env.DEBUG_PROCESS_CONTENT
   const processContentStart = performance.now()
-  let processResults: ReturnType<typeof processContent>[] = []
+  let processResults: Awaited<ReturnType<typeof processContent>>[] = []
 
   //
   // processContent in this thread

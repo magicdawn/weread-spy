@@ -1,6 +1,6 @@
 import { Command, Option } from 'clipanion'
 import fg from 'fast-glob'
-import epubcheck from '../utils/epubcheck'
+import epubcheck from '../utils/epubcheck.js'
 
 export class CheckCommand extends Command {
   static usage = Command.Usage({

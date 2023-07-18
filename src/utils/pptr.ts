@@ -1,6 +1,6 @@
+import { PPTR_DATA_DIR, baseDebug } from '$common'
 import pptr from 'puppeteer'
 import { RequestInterceptionManager } from 'puppeteer-intercept-and-modify-requests'
-import { PPTR_DATA_DIR, baseDebug } from '../common'
 
 const debug = baseDebug.extend('pptr')
 

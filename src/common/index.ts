@@ -1,9 +1,12 @@
 import { load as $load } from 'cheerio'
 import d from 'debug'
 import envPaths from 'env-paths'
+import $esm from 'esm-utils'
 import path from 'path'
-import { sync as pkgUpSync } from 'pkg-up'
+import { pkgUpSync } from 'pkg-up'
 import { SetOptional } from 'type-fest'
+
+export { $esm }
 
 import type exampleStartInfo from '../utils/processContent/example-start-info.json'
 export type Info = SetOptional<
