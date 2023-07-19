@@ -16,6 +16,9 @@ export default defineConfig({
   target: 'node16',
   clean: true,
   minify: prod,
+  env: {
+    NODE_ENV: process.env.NODE_ENV,
+  },
 
   // NOTE: puppeteer-intercept-and-modify-requests 这个包 esm build 有问题
   noExternal: ['puppeteer-intercept-and-modify-requests'],

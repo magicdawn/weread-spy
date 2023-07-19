@@ -47,6 +47,7 @@ export function getBookHtml(info: Info) {
 }
 
 export const baseDebug = d('weread-spy')
+export const baseDebugDetail = d('weread-spy-detail')
 
 export interface Data {
   startInfo: Info

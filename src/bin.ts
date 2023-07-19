@@ -14,7 +14,13 @@ const { require } = $esm(import.meta)
 
 // enable logs
 if (!process.env.DEBUG) {
-  debugFactory.enable('weread-spy:*')
+  const enabledNSP = [
+    `weread-spy:*`,
+    process.env.NODE_ENV !== 'production' && 'weread-spy-detail:*',
+  ]
+    .filter(Boolean)
+    .join(',')
+  debugFactory.enable(enabledNSP)
 }
 
 // @ts-ignore

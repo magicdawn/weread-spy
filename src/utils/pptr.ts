@@ -2,7 +2,7 @@ import { PPTR_DATA_DIR, baseDebug } from '$common'
 import path from 'path'
 import pptr from 'puppeteer'
 import { RequestInterceptionManager } from 'puppeteer-intercept-and-modify-requests'
-import { processAppJs } from './anti-spider/index.js'
+import { processAppJs } from './pptr-anti-spider/index.js'
 
 const debug = baseDebug.extend('pptr')
 
@@ -32,34 +32,25 @@ export async function getBrowser() {
   const client = await page.target().createCDPSession()
   // @ts-ignore
   const interceptManager = new RequestInterceptionManager(client)
-  await interceptManager.intercept(
-    // {
-    //   urlPattern: `*/app.*.js`,
-    //   resourceType: 'Script',
-    //   modifyResponse({ body }) {
-    //     body = processAppJs(body, 'app.*.js')
-    //     return { body }
-    //   },
-    // },
-    {
-      urlPattern: `*/*.*.js`,
-      resourceType: 'Script',
-      modifyResponse({ body, event }) {
-        const url = event.request.url
-        const basename = path.basename(url)
+  await interceptManager.intercept({
+    urlPattern: `*/*.*.js`,
+    // urlPattern: `*/app.*.js`,
+    resourceType: 'Script',
+    modifyResponse({ body, event }) {
+      const url = event.request.url
+      const basename = path.basename(url)
 
-        // 1.xxx.js
-        // app.xxx.js
-        // utils.xxx.js
-        if (!/^\w+\.\w+\.js$/.test(basename)) {
-          return
-        }
+      // 1.xxx.js
+      // app.xxx.js
+      // utils.xxx.js
+      if (!/^\w+\.\w+\.js$/.test(basename)) {
+        return
+      }
 
-        body = processAppJs(body, basename)
-        return { body }
-      },
-    }
-  )
+      body = processAppJs(body, basename)
+      return { body }
+    },
+  })
 
   await page.goto('https://weread.qq.com/')
   const loginBtn = '.navBar_link_Login'
