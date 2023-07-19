@@ -24,7 +24,7 @@ export default function epubcheck(file: string) {
   console.log('[exec]: %s', cmd)
   try {
     execSync(cmd, { stdio: 'inherit' })
-  } catch (error) {
-    // ignore
+  } catch (e) {
+    console.error(e.stack || e)
   }
 }

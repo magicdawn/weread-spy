@@ -22,6 +22,8 @@ export default defineConfig({
 
   // NOTE: puppeteer-intercept-and-modify-requests 这个包 esm build 有问题
   noExternal: ['puppeteer-intercept-and-modify-requests'],
+  external: ['why-is-node-running'],
+
   esbuildOptions(options, context) {
     // init
     options.external ||= []

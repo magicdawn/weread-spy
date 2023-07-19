@@ -32,3 +32,6 @@ yarn.lock
 
 # lib
 /lib-test
+
+# for dev
+/example

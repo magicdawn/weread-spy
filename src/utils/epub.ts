@@ -20,7 +20,6 @@ import { pipeline } from 'stream'
 import { queryBook } from '../common/books-map.js'
 import Book from './Book.js'
 import getImgSrcInfo from './epub-img.js'
-import epubcheck from './epubcheck.js'
 import { FileItem } from './EpubModel/index.js'
 
 // worker
@@ -282,11 +281,5 @@ export async function genEpubFor(id: string, dir: string, clean: boolean, decomp
   }
 
   debug('epub created: %s', file)
-  return file
-}
-
-export async function checkEpub(id: string, dir: string) {
-  const { file } = await getInfo(id, dir)
-  epubcheck(file)
   return file
 }

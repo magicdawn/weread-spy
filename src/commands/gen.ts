@@ -1,7 +1,8 @@
+import { genEpubFor } from '$utils/epub'
+import epubcheck from '$utils/epubcheck'
 import { Command, Option } from 'clipanion'
 import path from 'path'
 import { currentBooks, queryBookAny } from '../common/books-map.js'
-import { checkEpub, genEpubFor } from '../utils/epub.js'
 
 export class GenCommand extends Command {
   static usage = Command.Usage({
@@ -42,7 +43,7 @@ export class GenCommand extends Command {
 
     const id = book.id
     const url = book.url
-    genCommandMain({ url, id, clean: Boolean(clean), dir, decompress })
+    await genCommandMain({ url, id, clean: Boolean(clean), dir, decompress })
   }
 }
 
@@ -76,7 +77,8 @@ export async function genCommandMain({
   // normalize
   dir = path.resolve(dir || process.cwd())
 
-  await genEpubFor(bookId, dir, clean, decompress)
+  const file = await genEpubFor(bookId, dir, clean, decompress)
+  epubcheck(file)
 
-  return await checkEpub(bookId, dir)
+  return file
 }

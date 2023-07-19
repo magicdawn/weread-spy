@@ -27,6 +27,7 @@ export async function getBrowser() {
 
   // disable cache
   await page.setCacheEnabled(false)
+  await page.goto('https://weread.qq.com/')
 
   // intercept
   const client = await page.target().createCDPSession()
@@ -52,7 +53,6 @@ export async function getBrowser() {
     },
   })
 
-  await page.goto('https://weread.qq.com/')
   const loginBtn = '.navBar_link_Login'
   const logined = await page.$$eval(loginBtn, (els) => els.length === 0)
   if (!logined) {
