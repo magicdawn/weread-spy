@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.1 2023-07-19
+
+- feat: use epubckeck-assets
+- feat: rm execa, use plain `child_process.execSync`
+
 ## v0.7.0 2023-07-19
 
 - fix `__vue__` exposure
