@@ -5,7 +5,7 @@ import * as pptr from 'puppeteer'
 import URI from 'urijs'
 import { baseDebug } from '../common/index.js'
 import { getBrowser } from '../utils/pptr.js'
-import { main as download } from './download.js'
+import { changeChapter, main as download, waitReaderReady } from './download.js'
 import { genCommandMain as gen } from './gen.js'
 
 const debug = baseDebug.extend('one')
@@ -81,30 +81,10 @@ async function decideDownload(
   dir?: string,
   interval?: string
 ) {
-  const waitCondition = async (test: (el: Element, ...args: any[]) => boolean, ...args: any[]) => {
-    let ok = false
-    while (!ok) {
-      ok = await page.$eval('#app', test, ...args)
-      if (!ok) {
-        await new Promise((r) => {
-          setTimeout(r, 100)
-        })
-      }
-    }
-  }
+  await waitReaderReady(page)
 
-  await waitCondition((el) => {
-    const state = (el as any).__vue__.$store.state
-    if (state?.reader?.chapterContentState === 'DONE') {
-      return true
-    } else {
-      return false
-    }
-  })
-
-  const state = await page.$eval('#app', (el) => {
-    const state = (el as any).__vue__.$store.state
-    return state
+  const state = await page.evaluate(() => {
+    return globalThis.app.__vue__.$store.state
   })
 
   const chapterInfos = state.reader.chapterInfos
@@ -112,28 +92,10 @@ async function decideDownload(
   // second + first
   const firstChapterUid = chapterInfos[0].chapterUid
   const secondChapterUid = chapterInfos[1].chapterUid
-
-  const changeChapter = async (chapterUid: number) => {
-    await page.$eval(
-      '#routerView',
-      (el: any, chapterUid) => {
-        el.__vue__.changeChapter({ chapterUid: chapterUid })
-      },
-      chapterUid
-    )
-    await waitCondition((el: any, id) => {
-      const state = el.__vue__.$store.state
-      const currentChapterId = state.reader.currentChapter.chapterUid
-      const currentState = state?.reader?.chapterContentState
-      console.log({ currentChapterId, currentState, id })
-      return currentChapterId === id && currentState === 'DONE'
-    }, chapterUid)
-  }
-
   // to second
-  await changeChapter(secondChapterUid)
+  await changeChapter(page, secondChapterUid)
   // to first
-  await changeChapter(firstChapterUid)
+  await changeChapter(page, firstChapterUid)
 
   const bookCoverUrl = page.url()
 

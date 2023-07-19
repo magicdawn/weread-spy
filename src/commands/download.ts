@@ -63,83 +63,14 @@ export async function main(
   await page.goto(bookReadUrl)
 
   /**
-   * pptr Actions
-   */
-
-  async function waitReaderReady() {
-    return page.waitForFunction(
-      () => {
-        const state = globalThis.app?.__vue__?.$store?.state
-        return state?.reader?.chapterContentState === 'DONE'
-      },
-      { polling: 100 }
-    )
-  }
-
-  async function subscribeToVuexMutaion() {
-    await page.evaluate(() => {
-      const $store = globalThis.app.__vue__.$store
-      $store.subscribe((mutation, state) => {
-        console.log('VUEX mutation type=%s', mutation.type, mutation.payload)
-        if (mutation.type === 'updateReaderContentHtml') {
-          globalThis.__chapterContentHtmlArray__ = mutation.payload
-        }
-      })
-    })
-  }
-
-  async function changeChapter(uid: number) {
-    // start
-    await page.$eval(
-      '#routerView',
-      (el, uid) => {
-        ;(el as any).__vue__.changeChapter({ chapterUid: uid })
-      },
-      uid
-    )
-
-    // wait complete
-    await waitReaderReady()
-    await page.waitForFunction(
-      (id) => {
-        const state = globalThis.app.__vue__.$store.state
-        const currentChapterId = state?.reader?.currentChapter?.chapterUid
-        const currentState = state?.reader?.chapterContentState
-        console.log({ currentChapterId, currentState, id })
-        return currentChapterId === id && currentState === 'DONE'
-      },
-      { polling: 100 },
-      uid
-    )
-  }
-
-  async function getInfoFromPage() {
-    const { state, chapterContentHtmlArray } = await page.evaluate(() => {
-      const state = globalThis.app.__vue__.$store.state
-      const chapterContentHtmlArray = globalThis.__chapterContentHtmlArray__
-      return { state, chapterContentHtmlArray }
-    })
-    // want
-    const info = {
-      bookId: state.reader.bookId,
-      bookInfo: state.reader.bookInfo,
-      chapterInfos: state.reader.chapterInfos,
-      chapterContentHtmlArray: chapterContentHtmlArray, // state.reader.chapterContentHtml,
-      chapterContentStyles: state.reader.chapterContentStyles,
-      currentChapterId: state.reader.currentChapter.chapterUid,
-    }
-    return info
-  }
-
-  /**
    * Engine start
    */
 
-  await waitReaderReady()
-  await subscribeToVuexMutaion()
+  await waitReaderReady(page)
+  await subscribeToVuexMutaion(page)
 
   // save map
-  const startInfo = await getInfoFromPage()
+  const startInfo = await getInfoFromPage(page)
   await addBook({ id: startInfo.bookId, title: startInfo.bookInfo.title, url: bookReadUrl })
 
   let usingInterval: number | undefined = undefined
@@ -158,8 +89,8 @@ export async function main(
     debug('切换章节间隔 %s ms', usingInterval)
   }
 
-  // 先切到非第一章
-  await changeChapter(startInfo.chapterInfos[1].chapterUid)
+  // 先切到 index = 1, 后面会切到 index = 0, 触发 mutation
+  await changeChapter(page, startInfo.chapterInfos[1].chapterUid)
 
   const infos: any[] = []
   for (const [index, c] of startInfo.chapterInfos.entries()) {
@@ -169,9 +100,9 @@ export async function main(
     if (index > 0 && usingInterval) {
       await delay(usingInterval)
     }
-    await changeChapter(chapterUid)
+    await changeChapter(page, chapterUid)
 
-    const info = await getInfoFromPage()
+    const info = await getInfoFromPage(page)
     infos.push(info)
     debug('已收集章节 id=%s', chapterUid)
   }
@@ -195,4 +126,73 @@ export async function main(
   debug('downloaded to %s', bookJsonFile)
 
   await browser.close()
+}
+
+/**
+ * pptr Actions
+ */
+
+export async function waitReaderReady(page: pptr.Page) {
+  return page.waitForFunction(
+    () => {
+      const state = globalThis.app?.__vue__?.$store?.state
+      return state?.reader?.chapterContentState === 'DONE'
+    },
+    { polling: 100 }
+  )
+}
+
+export async function subscribeToVuexMutaion(page: pptr.Page) {
+  await page.evaluate(() => {
+    const $store = globalThis.app.__vue__.$store
+    $store.subscribe((mutation, state) => {
+      console.log('VUEX mutation type=%s', mutation.type, mutation.payload)
+      if (mutation.type === 'updateReaderContentHtml') {
+        globalThis.__chapterContentHtmlArray__ = mutation.payload
+      }
+    })
+  })
+}
+
+export async function changeChapter(page: pptr.Page, uid: number) {
+  // start
+  await page.$eval(
+    '#routerView',
+    (el, uid) => {
+      ;(el as any).__vue__.changeChapter({ chapterUid: uid })
+    },
+    uid
+  )
+
+  // wait complete
+  await waitReaderReady(page)
+  await page.waitForFunction(
+    (id) => {
+      const state = globalThis.app.__vue__.$store.state
+      const currentChapterId = state?.reader?.currentChapter?.chapterUid
+      const currentState = state?.reader?.chapterContentState
+      console.log({ currentChapterId, currentState, id })
+      return currentChapterId === id && currentState === 'DONE'
+    },
+    { polling: 100 },
+    uid
+  )
+}
+
+export async function getInfoFromPage(page: pptr.Page) {
+  const { state, chapterContentHtmlArray } = await page.evaluate(() => {
+    const state = globalThis.app.__vue__.$store.state
+    const chapterContentHtmlArray = globalThis.__chapterContentHtmlArray__
+    return { state, chapterContentHtmlArray }
+  })
+  // want
+  const info = {
+    bookId: state.reader.bookId,
+    bookInfo: state.reader.bookInfo,
+    chapterInfos: state.reader.chapterInfos,
+    chapterContentHtmlArray: chapterContentHtmlArray, // state.reader.chapterContentHtml,
+    chapterContentStyles: state.reader.chapterContentStyles,
+    currentChapterId: state.reader.currentChapter.chapterUid,
+  }
+  return info
 }
