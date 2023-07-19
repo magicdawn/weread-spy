@@ -1,6 +1,5 @@
-import { PROJECT_ROOT } from '$common'
-import * as execa from 'execa'
-import path from 'path'
+import { execSync } from 'child_process'
+import epubcheckJarPath from 'epubcheck-assets'
 
 // epubchecker 安装时从 github release 下载, 且没有使用 http_proxy
 // function getJarPath() {
@@ -10,7 +9,8 @@ import path from 'path'
 // }
 
 function getJarPath() {
-  return path.join(PROJECT_ROOT, 'assets/epubcheck-5.0.0/epubcheck.jar')
+  // return path.join(PROJECT_ROOT, 'assets/epubcheck-5.0.0/epubcheck.jar')
+  return epubcheckJarPath
 }
 
 export default function epubcheck(file: string) {
@@ -23,7 +23,7 @@ export default function epubcheck(file: string) {
   const cmd = `java -jar '${epubcheckJar}' '${file}'`
   console.log('[exec]: %s', cmd)
   try {
-    execa.execaCommandSync(cmd, { stdio: 'inherit', shell: true })
+    execSync(cmd, { stdio: 'inherit' })
   } catch (error) {
     // ignore
   }
