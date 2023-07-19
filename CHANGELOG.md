@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.7.2 2023-07-19
+
+- fix: use store.subscribe, cause pptr modify fails.
+
 ## v0.7.1 2023-07-19
 
 - feat: use epubckeck-assets
