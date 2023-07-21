@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.7.3 2023-07-21
+
+- chore: update puppeteer, proxy-agent related
+
 ## v0.7.2 2023-07-19
 
 - fix: use store.subscribe, cause pptr modify fails.
