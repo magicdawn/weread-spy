@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.7.4 2023-08-26
+
+- udpate deps
+
 ## v0.7.3 2023-07-21
 
 - chore: update puppeteer, proxy-agent related
