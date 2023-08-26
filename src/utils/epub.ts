@@ -1,6 +1,3 @@
-#!/usr/bin/env ts-node-script
-/* eslint-disable camelcase */
-
 /*
 	Produce an EPUB file
 	--------------------
@@ -16,18 +13,17 @@ import fse from 'fs-extra'
 import nunjucks from 'nunjucks'
 import path from 'path'
 import { performance } from 'perf_hooks'
-import { pipeline } from 'stream'
+import pmap, { pmapWorker } from 'promise.map'
+import { pipeline } from 'stream/promises'
 import { queryBook } from '../common/books-map.js'
 import Book from './Book.js'
 import getImgSrcInfo from './epub-img.js'
 import { FileItem } from './EpubModel/index.js'
 
 // worker
-import mapOnWorker from './mapOnWorker.js'
 import { createWorkers } from './processContent/worker/index.main.js'
 
 // this thread for debugger
-import pmap from 'promise.map'
 import processContent from './processContent/index.js'
 
 const debug = baseDebug.extend('utils:epub')
@@ -42,7 +38,7 @@ export async function gen({
   clean: boolean
 }): Promise<void> {
   debug('epubgen %s -> %s', data.startInfo.bookId, epubFile)
-  const template_base = path.join(PROJECT_ROOT, 'assets/templates/epub/')
+  const templateBase = path.join(PROJECT_ROOT, 'assets/templates/epub/')
 
   const book = new Book(data)
   const { bookDir, addFile, addTextFile } = book
@@ -51,13 +47,13 @@ export async function gen({
   book.addZipFile('mimetype', 'application/epub+zip', { compression: 'STORE' })
 
   // static files from META-INF
-  await book.addZipFolder('META-INF', path.join(template_base, 'META-INF'))
+  await book.addZipFolder('META-INF', path.join(templateBase, 'META-INF'))
 
   const [navTemplate, tocTemplate, opfTemplate, coverTemplate] = await Promise.all([
-    fse.readFile(path.join(template_base, 'OEBPS/nav.xhtml'), 'utf8'),
-    fse.readFile(path.join(template_base, 'OEBPS/toc.ncx'), 'utf8'),
-    fse.readFile(path.join(template_base, 'OEBPS/content.opf'), 'utf8'),
-    fse.readFile(path.join(template_base, 'OEBPS/cover.xhtml'), 'utf8'),
+    fse.readFile(path.join(templateBase, 'OEBPS/nav.xhtml'), 'utf8'),
+    fse.readFile(path.join(templateBase, 'OEBPS/toc.ncx'), 'utf8'),
+    fse.readFile(path.join(templateBase, 'OEBPS/content.opf'), 'utf8'),
+    fse.readFile(path.join(templateBase, 'OEBPS/cover.xhtml'), 'utf8'),
   ])
 
   // 章节 html
@@ -125,7 +121,7 @@ export async function gen({
   //
   else {
     const workers = createWorkers()
-    processResults = await mapOnWorker(
+    processResults = await pmapWorker(
       chapterInfos,
       async (chapterInfo, i, arr, worker) => {
         const c = chapterInfos[i]
@@ -232,21 +228,14 @@ export async function gen({
   // 添加图片
   await book.addZipFolder('OEBPS/imgs', path.join(bookDir, 'imgs'))
 
+  // write .epub file
   const stream = book.zip.generateNodeStream({
     streamFiles: true,
     compression: 'DEFLATE',
     compressionOptions: { level: 9 },
   })
   const output = fse.createWriteStream(epubFile)
-  return new Promise((resolve, reject) => {
-    pipeline(stream, output, (err) => {
-      if (err) {
-        return reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+  await pipeline(stream, output)
 }
 
 async function getInfo(id: string, dir: string) {

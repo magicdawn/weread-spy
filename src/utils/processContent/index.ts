@@ -67,7 +67,7 @@ export default async function processContent(info: Info, options: ProcessContent
     // html = prettier.format(html, {...prettierConfig, parser: 'html'})
   } catch (e) {
     console.warn('[prettier] format met error: currentChapterId = %s', currentChapterId)
-    console.error(e.stack || e)
+    console.warn(e.stack || e)
   }
 
   // replace
