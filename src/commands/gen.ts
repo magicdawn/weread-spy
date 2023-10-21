@@ -1,6 +1,7 @@
 import { genEpubFor } from '$utils/epub'
 import epubcheck from '$utils/epubcheck'
 import { Command, Option } from 'clipanion'
+import { homedir } from 'os'
 import path from 'path'
 import { currentBooks, queryBookAny } from '../common/books-map.js'
 
@@ -76,6 +77,10 @@ export async function genCommandMain({
 
   // normalize
   dir = path.resolve(dir || process.cwd())
+  // if run in project root, gen to `example/` subdir
+  if (dir === path.join(homedir(), 'projects/weread-spy-private')) {
+    dir = path.join(dir, 'example')
+  }
 
   const file = await genEpubFor(bookId, dir, clean, decompress)
   epubcheck(file)

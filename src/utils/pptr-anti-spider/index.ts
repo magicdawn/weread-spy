@@ -13,6 +13,13 @@ export function processAppJs(js: string | undefined, fileBasename: string) {
   // https://github.com/vuejs/vue/blob/49b6bd4264c25ea41408f066a1835f38bf6fe9f1/src/core/instance/lifecycle.ts#L78
   // 在 Vue.prototype._update 实现
   {
+    // 设置环境变量
+    // _0x44ebd7['env'] = {},
+    // _0x44ebd7['argv'] = [],
+    js = js.replace(/(_0x\w+)\['env'\]=\{\},(_0x\w+)\['argv'\]=\[\],/, (match, var1, var2) => {
+      return `${var1}.env = { VUE_DISMISS_DEVTOOLS: 'yes' }, ${var2}.argv = [],`
+    })
+
     // 'yes'===_0x16452a['env']['VUE_DISMISS_DEVTOOLS'] && _0x1be68e && (_0x1be68e['__vue__'] = null),
     // 'yes'===_0x16452a['env'][_0x3744('0x22b')] && _0x5ad1f7['$el'] && (console['log']('__vue__'),
     js = js.replace(/'yes'===([_\w]+\['env'\])/g, `'yes' !== $1`)
@@ -20,6 +27,10 @@ export function processAppJs(js: string | undefined, fileBasename: string) {
     // 'yes'===_0x1372e5[_0x3db9('0x5ba')]['VUE_DISMISS_DEVTOOLS'] && _0x243be5 && (_0x243be5[_0x3db9('0xcce')] = null),
     // 'yes'===_0x1372e5[_0x3db9('0x5ba')][_0x3db9('0xf2')] && _0x45b52d['$el'] && (console['log'](_0x3db9('0xcce')),
     js = js.replace(/'yes'===([_\w]+\[_0x\w+\('0x\w+'\)\]\[)/g, `'yes' !== $1`)
+
+    // _0x2a82('0x207')===_0x5d11b9['env']['VUE_DISMISS_DEVTOOLS']&&_0x1051e8[_0x2a82('0xad7')] && (console['log']('__vue__'),
+    // _0x1051e8['$el'][_0x2a82('0x2b2')] = _0x1051e8),
+    // 变种太多
   }
 
   {
@@ -49,6 +60,7 @@ export function processAppJs(js: string | undefined, fileBasename: string) {
           }
 
           if (mutation === 'updateReaderContentHtml') {
+            window.__store__ = this
             window.__chapterContentHtmlArray__ = payload
           }
 

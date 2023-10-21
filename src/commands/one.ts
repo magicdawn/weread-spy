@@ -72,6 +72,10 @@ export class OneCommand extends Command {
 
     const handlerDebounced = _.debounce(handler, 1000)
     page.on('framenavigated', handlerDebounced)
+
+    // FIXME: only for dev-test
+    // await page.goto('https://weread.qq.com/web/reader/e1932d70813ab82e7g014f5b')
+    // await page.goto('https://weread.qq.com/web/reader/f1132f80813ab821eg018540')
   }
 }
 

@@ -1,7 +1,7 @@
 import { getBookHtml } from '$common'
 import { createHash } from 'crypto'
 import debugFactory from 'debug'
-import { dl } from 'dl-vampire'
+import { dl, is404Error } from 'dl-vampire'
 import fse from 'fs-extra'
 import mime from 'mime'
 import ms from 'ms'
@@ -129,8 +129,10 @@ export default async function getImgSrcInfo(book: Book, clean: boolean) {
           },
         })
       } catch (e) {
-        // 例如 https://res.weread.qq.com/wrepub/web/855825/copyright.jpg
-        if (e?.statusCode === 404) {
+        // @example
+        // https://res.weread.qq.com/wrepub/web/855825/copyright.jpg
+        // https://res.weread.qq.com/wrepub/CB_3300070708_83%28The_Earth_Through_Time%29.png
+        if (is404Error(e)) {
           delete imgSrcInfo[src] // 剔除了, 当他不存在
           return
         }
