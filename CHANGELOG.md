@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.5 2023-10-21
+
+- udpate deps
+- use `process.env` to fix `__vue__` exposure
+
 ## v0.7.4 2023-08-26
 
 - udpate deps
