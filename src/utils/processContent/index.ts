@@ -50,6 +50,14 @@ export default async function processContent(info: Info, options: ProcessContent
   // debug('removeUnusedSpan complete')
   // debug($.xml().trim())
 
+  /**
+   * special cases
+   */
+
+  // <p class="fDropContent"><span class="ftext"><span>在</span></span><span>我的第一本书《练习的心态》中
+  // 显示效果差
+  $('.fDropContent > .ftext').removeClass('ftext').data('removed-class', 'ftext')
+
   // 图片
   const transformImgSrc = (src: string) => imgSrcInfo[src]?.localFile
   const ctx: { transformImgSrc: TransformImgSrc; imgs: Array<{ src: string; newSrc: string }> } = {
