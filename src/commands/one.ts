@@ -109,6 +109,7 @@ async function decideDownload(
 
   // generate
   const file = await gen({ url: bookCoverUrl, clean: true, dir })
+  console.log('')
   debug('-'.repeat(20), 'generate complete', '-'.repeat(20))
   debug('epub 文件: %s', file)
 }

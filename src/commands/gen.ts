@@ -85,5 +85,12 @@ export async function genCommandMain({
   const file = await genEpubFor(bookId, dir, clean, decompress)
   epubcheck(file)
 
+  setTimeout(async () => {
+    // console.log('why-is-node-running ->')
+    // const { default: log } = await import('why-is-node-running')
+    // log()
+    // console.log(process.getActiveResourcesInfo())
+  }, 100)
+
   return file
 }

@@ -1,5 +1,8 @@
+import { baseDebug } from '$common/index'
 import { execSync } from 'child_process'
 import epubcheckJarPath from 'epubcheck-assets'
+
+const debug = baseDebug.extend('utils:epubcheck')
 
 // epubchecker 安装时从 github release 下载, 且没有使用 http_proxy
 // function getJarPath() {
@@ -21,9 +24,10 @@ export default function epubcheck(file: string) {
   }
 
   const cmd = `java -jar '${epubcheckJar}' '${file}'`
-  console.log('[exec]: %s', cmd)
+  debug('[exec]: %s', cmd)
   try {
     execSync(cmd, { stdio: 'inherit' })
+    debug('success')
   } catch (e) {
     console.error(e.stack || e)
   }
