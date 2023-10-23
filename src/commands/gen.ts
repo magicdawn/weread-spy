@@ -90,6 +90,7 @@ export async function genCommandMain({
     // const { default: log } = await import('why-is-node-running')
     // log()
     // console.log(process.getActiveResourcesInfo())
+    // console.log(process._getActiveHandles())
   }, 100)
 
   return file
