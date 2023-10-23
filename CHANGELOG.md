@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.7.6
+
+- fix not existing issue when success
+
 ## v0.7.5 2023-10-21
 
 - udpate deps
